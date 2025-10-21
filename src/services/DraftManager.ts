@@ -29,13 +29,52 @@ export class DraftManager {
     private readonly metadataFile: string;
 
     constructor() {
-        // Use Documents/LiveBlogWriter folder
-        const documentsPath = path.join(os.homedir(), 'Documents');
+        // Use the proper Documents folder (handles OneDrive redirection on Windows)
+        const documentsPath = this.getDocumentsPath();
         this.draftsFolder = path.join(documentsPath, 'LiveBlogWriter', 'Drafts');
         this.metadataFile = path.join(this.draftsFolder, '.metadata.json');
         
         // Ensure drafts folder exists
         this.ensureDraftsFolderExists();
+    }
+
+    private getDocumentsPath(): string {
+        // On Windows, try to get the actual Documents folder which might be redirected to OneDrive
+        if (process.platform === 'win32') {
+            // Try to read the Windows registry or use environment variables to find the real Documents folder
+            const userProfile = process.env.USERPROFILE;
+            const oneDriveDocuments = process.env.OneDrive ? path.join(process.env.OneDrive, 'Documents') : null;
+            const oneDriveConsumerDocs = process.env.OneDriveConsumer ? path.join(process.env.OneDriveConsumer, 'Documents') : null;
+            const oneDriveCommercialDocs = process.env.OneDriveCommercial ? path.join(process.env.OneDriveCommercial, 'Documents') : null;
+            
+            // Check OneDrive Documents folders first (most common scenario)
+            const candidatePaths = [
+                oneDriveDocuments,
+                oneDriveConsumerDocs, 
+                oneDriveCommercialDocs,
+                userProfile ? path.join(userProfile, 'Documents') : null,
+                path.join(os.homedir(), 'Documents')
+            ].filter(Boolean) as string[];
+            
+            // Return the first existing Documents folder
+            for (const candidatePath of candidatePaths) {
+                if (fs.existsSync(candidatePath)) {
+                    try {
+                        // Test write access
+                        const testFile = path.join(candidatePath, '.live-blog-writer-test');
+                        fs.writeFileSync(testFile, 'test');
+                        fs.unlinkSync(testFile);
+                        return candidatePath;
+                    } catch {
+                        // Continue to next candidate if no write access
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        // Fallback for non-Windows or if no suitable folder found
+        return path.join(os.homedir(), 'Documents');
     }
 
     private ensureDraftsFolderExists(): void {
