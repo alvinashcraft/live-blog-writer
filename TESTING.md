@@ -98,11 +98,6 @@ Then open a new VS Code window and load the extension manually.
    Platform: wordpress
    WordPress URL: https://your-blog.com
    WordPress Username: your-username
-   WordPress Application Password: your-app-password
-   ```
-
-4. **Expected**: Settings are saved
-
 ### Test 6: Publish to WordPress
 
 1. Create a test post with title and content
