@@ -339,6 +339,7 @@ export class BlogEditorPanel {
         // Initialize TinyMCE
         tinymce.init({
             selector: '#editor',
+            license_key: 'gpl',
             height: '100%',
             menubar: true,
             plugins: [
