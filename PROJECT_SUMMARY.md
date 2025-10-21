@@ -213,7 +213,6 @@ live-blog-writer/
 | `liveBlogWriter.platform` | string | Platform: wordpress or blogger |
 | `liveBlogWriter.wordpress.url` | string | WordPress site URL |
 | `liveBlogWriter.wordpress.username` | string | WordPress username |
-| `liveBlogWriter.wordpress.applicationPassword` | string | WordPress app password |
 | `liveBlogWriter.blogger.blogId` | string | Blogger blog ID |
 | `liveBlogWriter.blogger.apiKey` | string | Blogger API key |
 
