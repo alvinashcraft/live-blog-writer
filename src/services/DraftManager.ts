@@ -124,7 +124,7 @@ export class DraftManager {
     }
 
     private generateDraftId(): string {
-        return `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return `draft-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     }
 
     private getDraftFilePath(draftId: string): string {
