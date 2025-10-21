@@ -75,15 +75,15 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.8",
     "eslint": "^8.54.0",
-    "typescript": "^5.3.0",
-    "@vscode/test-electron": "^2.3.8"
+    "typescript": "^5.3.0"
   },
   "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.12.2"
   }
 }
