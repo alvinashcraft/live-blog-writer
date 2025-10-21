@@ -9,13 +9,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
-DEVELOPMENT.md
-TESTING.md
-CONTRIBUTING.md
-FINAL_STATUS.txt
-PROJECT_SUMMARY.md
-SECURITY_SUMMARY.md
-ICON.md
+docs/**
 *.vsix
 node_modules/**/.git/**
 node_modules/**/test/**
