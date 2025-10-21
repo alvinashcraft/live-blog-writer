@@ -3,7 +3,7 @@
   "displayName": "Live Blog Writer",
   "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
   "icon": "images/writerIcon.png",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
