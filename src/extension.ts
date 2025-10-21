@@ -3,12 +3,45 @@ import { BlogEditorPanel } from './webview/BlogEditorPanel';
 import { WordPressService } from './services/WordPressService';
 import { BloggerService } from './services/BloggerService';
 
+const WORDPRESS_PASSWORD_KEY = 'liveBlogWriter.wordpress.password';
+const BLOGGER_API_KEY = 'liveBlogWriter.blogger.apiKey';
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Live Blog Writer extension is now active!');
 
     // Register command to create a new blog post
     let newPostCommand = vscode.commands.registerCommand('live-blog-writer.newPost', () => {
         BlogEditorPanel.createOrShow(context.extensionUri);
+    });
+
+    // Register command to set WordPress password
+    let setWordPressPasswordCommand = vscode.commands.registerCommand('live-blog-writer.setWordPressPassword', async () => {
+        const password = await vscode.window.showInputBox({
+            prompt: 'Enter your WordPress application password',
+            password: true,
+            ignoreFocusOut: true,
+            placeHolder: 'WordPress application password'
+        });
+
+        if (password) {
+            await context.secrets.store(WORDPRESS_PASSWORD_KEY, password);
+            vscode.window.showInformationMessage('WordPress password saved securely.');
+        }
+    });
+
+    // Register command to set Blogger API key
+    let setBloggerApiKeyCommand = vscode.commands.registerCommand('live-blog-writer.setBloggerApiKey', async () => {
+        const apiKey = await vscode.window.showInputBox({
+            prompt: 'Enter your Blogger API key',
+            password: true,
+            ignoreFocusOut: true,
+            placeHolder: 'Blogger API key'
+        });
+
+        if (apiKey) {
+            await context.secrets.store(BLOGGER_API_KEY, apiKey);
+            vscode.window.showInformationMessage('Blogger API key saved securely.');
+        }
     });
 
     // Register command to publish the current post
@@ -32,9 +65,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
             if (platform === 'wordpress') {
-                await publishToWordPress(postData, config);
+                await publishToWordPress(postData, config, context);
             } else if (platform === 'blogger') {
-                await publishToBlogger(postData, config);
+                await publishToBlogger(postData, config, context);
             } else {
                 vscode.window.showErrorMessage(`Unsupported platform: ${platform}`);
             }
@@ -43,16 +76,21 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(newPostCommand, publishPostCommand);
+    context.subscriptions.push(newPostCommand, publishPostCommand, setWordPressPasswordCommand, setBloggerApiKeyCommand);
 }
 
-async function publishToWordPress(postData: any, config: vscode.WorkspaceConfiguration) {
+async function publishToWordPress(postData: any, config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const url = config.get<string>('wordpress.url');
     const username = config.get<string>('wordpress.username');
-    const password = config.get<string>('wordpress.applicationPassword');
+    const password = await context.secrets.get(WORDPRESS_PASSWORD_KEY);
 
-    if (!url || !username || !password) {
-        vscode.window.showErrorMessage('WordPress configuration is incomplete. Please configure your WordPress settings.');
+    if (!url || !username) {
+        vscode.window.showErrorMessage('WordPress configuration is incomplete. Please configure your WordPress URL and username in settings.');
+        return;
+    }
+
+    if (!password) {
+        vscode.window.showErrorMessage('WordPress password not set. Please run "Live Blog Writer: Set WordPress Password" command first.');
         return;
     }
 
@@ -83,12 +121,17 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
     vscode.window.showInformationMessage(`Post published successfully to WordPress! Post ID: ${result.id}`);
 }
 
-async function publishToBlogger(postData: any, config: vscode.WorkspaceConfiguration) {
+async function publishToBlogger(postData: any, config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogId = config.get<string>('blogger.blogId');
-    const apiKey = config.get<string>('blogger.apiKey');
+    const apiKey = await context.secrets.get(BLOGGER_API_KEY);
 
-    if (!blogId || !apiKey) {
-        vscode.window.showErrorMessage('Blogger configuration is incomplete. Please configure your Blogger settings.');
+    if (!blogId) {
+        vscode.window.showErrorMessage('Blogger Blog ID is not configured. Please configure it in settings.');
+        return;
+    }
+
+    if (!apiKey) {
+        vscode.window.showErrorMessage('Blogger API key not set. Please run "Live Blog Writer: Set Blogger API Key" command first.');
         return;
     }
 

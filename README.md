@@ -31,7 +31,12 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
    - **Platform**: Select "wordpress"
    - **WordPress URL**: Your WordPress site URL (e.g., `https://example.com`)
    - **WordPress Username**: Your WordPress username
-   - **WordPress Application Password**: Generate an application password in your WordPress profile
+
+4. **Set WordPress Password Securely**:
+   - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
+   - Type "Live Blog Writer: Set WordPress Password" and press Enter
+   - Enter your WordPress application password when prompted
+   - The password will be stored securely in VS Code's Secret Storage
 
 #### Creating a WordPress Application Password
 
@@ -39,7 +44,7 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 2. Go to Users > Profile
 3. Scroll down to "Application Passwords"
 4. Enter a name (e.g., "VS Code Blog Writer") and click "Add New Application Password"
-5. Copy the generated password and paste it into the VS Code settings
+5. Copy the generated password and use it with the "Set WordPress Password" command
 
 ### Blogger Setup
 
@@ -48,7 +53,12 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 3. Configure the following settings:
    - **Platform**: Select "blogger"
    - **Blogger Blog ID**: Your Blogger blog ID (found in your blog's settings or URL)
-   - **Blogger API Key**: Your Google API key with Blogger API enabled
+
+4. **Set Blogger API Key Securely**:
+   - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
+   - Type "Live Blog Writer: Set Blogger API Key" and press Enter
+   - Enter your Google API key when prompted
+   - The API key will be stored securely in VS Code's Secret Storage
 
 #### Getting Blogger API Credentials
 
@@ -56,7 +66,7 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 2. Create a new project or select an existing one
 3. Enable the Blogger API v3
 4. Create credentials (API Key)
-5. Copy the API key and paste it into the VS Code settings
+5. Copy the API key and use it with the "Set Blogger API Key" command
 
 ## Usage
 
@@ -134,13 +144,27 @@ Your work is automatically saved every 30 seconds, preventing data loss.
 Make sure you have set:
 - WordPress URL (without trailing slash)
 - WordPress username
-- WordPress application password (not your regular password)
+- WordPress password using the "Live Blog Writer: Set WordPress Password" command
+
+### "WordPress password not set"
+
+Run the command:
+1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+2. Type "Live Blog Writer: Set WordPress Password"
+3. Enter your WordPress application password (not your regular password)
 
 ### "Blogger configuration is incomplete"
 
 Make sure you have set:
-- Blogger Blog ID
-- Blogger API Key with Blogger API enabled
+- Blogger Blog ID in settings
+- Blogger API Key using the "Live Blog Writer: Set Blogger API Key" command
+
+### "Blogger API key not set"
+
+Run the command:
+1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+2. Type "Live Blog Writer: Set Blogger API Key"
+3. Enter your Blogger API key
 
 ### Posts not appearing
 

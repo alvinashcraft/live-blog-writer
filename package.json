@@ -32,7 +32,9 @@
   ],
   "activationEvents": [
     "onCommand:live-blog-writer.newPost",
-    "onCommand:live-blog-writer.publishPost"
+    "onCommand:live-blog-writer.publishPost",
+    "onCommand:live-blog-writer.setWordPressPassword",
+    "onCommand:live-blog-writer.setBloggerApiKey"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -44,6 +46,14 @@
       {
         "command": "live-blog-writer.publishPost",
         "title": "Live Blog Writer: Publish Post"
+      },
+      {
+        "command": "live-blog-writer.setWordPressPassword",
+        "title": "Live Blog Writer: Set WordPress Password"
+      },
+      {
+        "command": "live-blog-writer.setBloggerApiKey",
+        "title": "Live Blog Writer: Set Blogger API Key"
       }
     ],
     "configuration": {
@@ -68,20 +78,10 @@
           "default": "",
           "description": "WordPress username"
         },
-        "liveBlogWriter.wordpress.applicationPassword": {
-          "type": "string",
-          "default": "",
-          "description": "WordPress application password"
-        },
         "liveBlogWriter.blogger.blogId": {
           "type": "string",
           "default": "",
           "description": "Blogger Blog ID"
-        },
-        "liveBlogWriter.blogger.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "Blogger API Key"
         }
       }
     }

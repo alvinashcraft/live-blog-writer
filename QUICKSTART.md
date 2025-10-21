@@ -19,7 +19,11 @@ Get started with Live Blog Writer in minutes!
    - **Platform**: `wordpress`
    - **WordPress URL**: `https://yourblog.com` (your WordPress site URL)
    - **WordPress Username**: Your WordPress username
-   - **WordPress Application Password**: [Generate one here](#wordpress-application-password)
+
+4. **Set Password Securely**:
+   - Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+   - Type: `Live Blog Writer: Set WordPress Password`
+   - Enter your WordPress application password
 
 #### WordPress Application Password
 
@@ -28,7 +32,7 @@ Get started with Live Blog Writer in minutes!
 3. Scroll to "Application Passwords"
 4. Name it "VS Code" and click "Add New"
 5. Copy the password (you'll only see it once!)
-6. Paste it into VS Code settings
+6. Use it with the "Set WordPress Password" command
 
 ### For Blogger:
 
@@ -37,7 +41,11 @@ Get started with Live Blog Writer in minutes!
 3. Set:
    - **Platform**: `blogger`
    - **Blogger Blog ID**: Your blog ID (see below)
-   - **Blogger API Key**: [Get your API key here](#blogger-api-key)
+
+4. **Set API Key Securely**:
+   - Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+   - Type: `Live Blog Writer: Set Blogger API Key`
+   - Enter your Blogger API key
 
 #### Finding Your Blogger Blog ID
 
@@ -54,7 +62,7 @@ https://www.blogger.com/blog/posts/YOUR_BLOG_ID
 3. Enable "Blogger API v3"
 4. Go to "Credentials" > "Create Credentials" > "API Key"
 5. Copy the API key
-6. Paste it into VS Code settings
+6. Use it with the "Set Blogger API Key" command
 
 ## Step 3: Write Your First Post
 
