@@ -22,20 +22,38 @@ export class BloggerService {
      * Create a new blog post
      * @param title Post title
      * @param content Post content (HTML)
+     * @param options Additional options (published date, labels)
      * @returns Created post data
      */
-    async createPost(title: string, content: string) {
+    async createPost(
+        title: string, 
+        content: string,
+        options?: {
+            published?: string;
+            labels?: string[];
+        }
+    ) {
         try {
+            const postData: any = {
+                kind: 'blogger#post',
+                blog: {
+                    id: this.blogId
+                },
+                title: title,
+                content: content
+            };
+
+            if (options?.published) {
+                postData.published = options.published;
+            }
+
+            if (options?.labels && options.labels.length > 0) {
+                postData.labels = options.labels;
+            }
+
             const response = await this.api.post(
                 `/blogs/${this.blogId}/posts`,
-                {
-                    kind: 'blogger#post',
-                    blog: {
-                        id: this.blogId
-                    },
-                    title: title,
-                    content: content
-                },
+                postData,
                 {
                     params: {
                         key: this.apiKey

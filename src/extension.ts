@@ -57,7 +57,28 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
     }
 
     const service = new WordPressService(url, username, password);
-    const result = await service.createPost(postData.title, postData.content);
+    
+    const options: any = {
+        status: postData.status || 'draft'
+    };
+
+    if (postData.publishDate) {
+        options.date = postData.publishDate;
+    }
+
+    if (postData.excerpt) {
+        options.excerpt = postData.excerpt;
+    }
+
+    if (postData.tags && postData.tags.length > 0) {
+        options.tags = postData.tags;
+    }
+
+    if (postData.categories && postData.categories.length > 0) {
+        options.categories = postData.categories;
+    }
+
+    const result = await service.createPost(postData.title, postData.content, options);
     
     vscode.window.showInformationMessage(`Post published successfully to WordPress! Post ID: ${result.id}`);
 }
@@ -72,7 +93,27 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
     }
 
     const service = new BloggerService(blogId, apiKey);
-    const result = await service.createPost(postData.title, postData.content);
+    
+    const options: any = {};
+
+    if (postData.publishDate) {
+        options.published = postData.publishDate;
+    }
+
+    // Combine tags and categories as Blogger labels
+    const labels: string[] = [];
+    if (postData.tags && postData.tags.length > 0) {
+        labels.push(...postData.tags);
+    }
+    if (postData.categories && postData.categories.length > 0) {
+        labels.push(...postData.categories);
+    }
+    
+    if (labels.length > 0) {
+        options.labels = labels;
+    }
+
+    const result = await service.createPost(postData.title, postData.content, options);
     
     vscode.window.showInformationMessage(`Post published successfully to Blogger! Post ID: ${result.id}`);
 }
