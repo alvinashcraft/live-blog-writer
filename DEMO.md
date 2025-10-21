@@ -148,11 +148,8 @@ Access via: File > Preferences > Settings > Search "Live Blog Writer"
 {
   "liveBlogWriter.platform": "wordpress",
   "liveBlogWriter.wordpress.url": "https://myblog.com",
-  "liveBlogWriter.wordpress.username": "admin",
-  "liveBlogWriter.wordpress.applicationPassword": "xxxx xxxx xxxx xxxx"
+  "liveBlogWriter.wordpress.username": "admin"
 }
-```
-
 ### Blogger Example
 ```json
 {
