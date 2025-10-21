@@ -1,0 +1,126 @@
+{
+  "name": "live-blog-writer",
+  "displayName": "Live Blog Writer",
+  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
+  "icon": "images/writerIcon.png",
+  "version": "0.0.2",
+  "publisher": "alvinashcraft",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alvinashcraft/live-blog-writer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alvinashcraft/live-blog-writer/issues"
+  },
+  "homepage": "https://github.com/alvinashcraft/live-blog-writer#readme",
+  "readme": "README.md",
+  "license": "MIT",
+  "keywords": [
+    "blog",
+    "blogging",
+    "wordpress",
+    "blogger",
+    "wysiwyg",
+    "editor",
+    "publishing",
+    "tinymce",
+    "markdown",
+    "writing"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "galleryBanner": {
+    "color": "#007ACC",
+    "theme": "dark"
+  },
+  "qna": "marketplace",
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "live-blog-writer.newPost",
+        "title": "Live Blog Writer: New Blog Post"
+      },
+      {
+        "command": "live-blog-writer.publishPost",
+        "title": "Live Blog Writer: Publish Post"
+      },
+      {
+        "command": "live-blog-writer.setWordPressPassword",
+        "title": "Live Blog Writer: Set WordPress Password"
+      },
+      {
+        "command": "live-blog-writer.setBloggerApiKey",
+        "title": "Live Blog Writer: Set Blogger API Key"
+      },
+      {
+        "command": "live-blog-writer.openRecentDraft",
+        "title": "Live Blog Writer: Open Recent Draft"
+      },
+      {
+        "command": "live-blog-writer.manageDrafts",
+        "title": "Live Blog Writer: Manage Drafts"
+      },
+      {
+        "command": "live-blog-writer.saveDraft",
+        "title": "Live Blog Writer: Save Draft"
+      }
+    ],
+    "configuration": {
+      "title": "Live Blog Writer",
+      "properties": {
+        "liveBlogWriter.platform": {
+          "type": "string",
+          "default": "wordpress",
+          "enum": [
+            "wordpress",
+            "blogger"
+          ],
+          "description": "Blog platform to publish to"
+        },
+        "liveBlogWriter.wordpress.url": {
+          "type": "string",
+          "default": "",
+          "description": "WordPress site URL (e.g., https://example.com)"
+        },
+        "liveBlogWriter.wordpress.username": {
+          "type": "string",
+          "default": "",
+          "description": "WordPress username"
+        },
+        "liveBlogWriter.blogger.blogId": {
+          "type": "string",
+          "default": "",
+          "description": "Blogger Blog ID"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "axios": "^1.12.2"
+  }
+}
