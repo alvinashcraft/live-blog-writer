@@ -4,6 +4,26 @@
   "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
   "version": "0.0.1",
   "publisher": "alvinashcraft",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alvinashcraft/live-blog-writer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alvinashcraft/live-blog-writer/issues"
+  },
+  "homepage": "https://github.com/alvinashcraft/live-blog-writer#readme",
+  "keywords": [
+    "blog",
+    "blogging",
+    "wordpress",
+    "blogger",
+    "wysiwyg",
+    "editor",
+    "publishing",
+    "tinymce",
+    "markdown",
+    "writing"
+  ],
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -72,7 +92,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "^20.x",
