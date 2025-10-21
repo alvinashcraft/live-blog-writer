@@ -41,22 +41,56 @@ export class DraftManager {
     private getDocumentsPath(): string {
         // On Windows, try to get the actual Documents folder which might be redirected to OneDrive
         if (process.platform === 'win32') {
-            // Try to read the Windows registry or use environment variables to find the real Documents folder
+            // First, try to get the actual Documents folder from Windows shell folders
+            try {
+                const { execSync } = require('child_process');
+                // Use PowerShell to get the actual Documents folder location from Windows registry
+                const result = execSync(
+                    'powershell -Command "Get-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\' -Name \'Personal\' | Select-Object -ExpandProperty Personal"',
+                    { encoding: 'utf8', timeout: 5000 }
+                ).toString().trim();
+                
+                if (result && fs.existsSync(result)) {
+                    // Test write access
+                    try {
+                        const testFile = path.join(result, '.live-blog-writer-test');
+                        fs.writeFileSync(testFile, 'test');
+                        fs.unlinkSync(testFile);
+                        console.log('Using Windows registry Documents path:', result);
+                        return result;
+                    } catch {
+                        console.log('No write access to registry Documents path:', result);
+                    }
+                }
+            } catch (error) {
+                console.log('Failed to read Windows registry Documents path:', error);
+            }
+
+            // Fallback to environment variables and common paths
             const userProfile = process.env.USERPROFILE;
             const oneDriveDocuments = process.env.OneDrive ? path.join(process.env.OneDrive, 'Documents') : null;
             const oneDriveConsumerDocs = process.env.OneDriveConsumer ? path.join(process.env.OneDriveConsumer, 'Documents') : null;
             const oneDriveCommercialDocs = process.env.OneDriveCommercial ? path.join(process.env.OneDriveCommercial, 'Documents') : null;
             
-            // Check OneDrive Documents folders first (most common scenario)
+            // Also check for Documents2, Documents3, etc. (OneDrive sometimes creates these)
+            const oneDriveVariants = [];
+            if (process.env.OneDrive) {
+                for (let i = 2; i <= 5; i++) {
+                    oneDriveVariants.push(path.join(process.env.OneDrive, `Documents${i}`));
+                }
+            }
+            
+            // Check candidate paths in order of preference
             const candidatePaths = [
                 oneDriveDocuments,
-                oneDriveConsumerDocs, 
+                ...oneDriveVariants,
+                oneDriveConsumerDocs,
                 oneDriveCommercialDocs,
                 userProfile ? path.join(userProfile, 'Documents') : null,
                 path.join(os.homedir(), 'Documents')
             ].filter(Boolean) as string[];
             
-            // Return the first existing Documents folder
+            // Return the first existing Documents folder with write access
             for (const candidatePath of candidatePaths) {
                 if (fs.existsSync(candidatePath)) {
                     try {
@@ -64,6 +98,7 @@ export class DraftManager {
                         const testFile = path.join(candidatePath, '.live-blog-writer-test');
                         fs.writeFileSync(testFile, 'test');
                         fs.unlinkSync(testFile);
+                        console.log('Using fallback Documents path:', candidatePath);
                         return candidatePath;
                     } catch {
                         // Continue to next candidate if no write access
