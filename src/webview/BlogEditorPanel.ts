@@ -56,6 +56,7 @@ export class BlogEditorPanel {
         // Handle messages from the webview
         this._panel.webview.onDidReceiveMessage(
             message => {
+                console.log('BlogEditorPanel received message:', message.command);
                 switch (message.command) {
                     case 'savePostData':
                         this._postData = {
@@ -67,6 +68,17 @@ export class BlogEditorPanel {
                             excerpt: message.excerpt,
                             status: message.status
                         };
+                        console.log('Post data saved:', this._postData);
+                        return;
+                    case 'publish':
+                        // Trigger the publish command
+                        console.log('Executing publish command');
+                        vscode.commands.executeCommand('live-blog-writer.publishPost');
+                        return;
+                    case 'info':
+                        // Show info message
+                        console.log('Showing info message:', message.text);
+                        vscode.window.showInformationMessage(message.text);
                         return;
                 }
             },
@@ -121,7 +133,7 @@ export class BlogEditorPanel {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.tiny.cloud; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.tiny.cloud; font-src ${webview.cspSource} https://cdn.tiny.cloud; img-src ${webview.cspSource} https: data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.jsdelivr.net; font-src ${webview.cspSource} https://cdn.jsdelivr.net; img-src ${webview.cspSource} https: data:;">
     <title>Blog Editor</title>
     <style>
         body {
@@ -328,7 +340,7 @@ export class BlogEditorPanel {
         </div>
     </div>
 
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
     <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
         
@@ -440,6 +452,7 @@ export class BlogEditorPanel {
 
         // Handle save button
         document.getElementById('saveBtn').addEventListener('click', () => {
+            console.log('Save button clicked');
             savePostData();
             vscode.postMessage({
                 command: 'info',
@@ -449,9 +462,11 @@ export class BlogEditorPanel {
 
         // Handle publish button
         document.getElementById('publishBtn').addEventListener('click', () => {
+            console.log('Publish button clicked');
             savePostData();
             // Give some time for the message to be processed
             setTimeout(() => {
+                console.log('Sending publish command');
                 vscode.postMessage({
                     command: 'publish'
                 });
