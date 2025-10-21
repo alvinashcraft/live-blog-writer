@@ -1,0 +1,89 @@
+{
+  "name": "live-blog-writer",
+  "displayName": "Live Blog Writer",
+  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
+  "version": "0.0.1",
+  "publisher": "alvinashcraft",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:live-blog-writer.newPost",
+    "onCommand:live-blog-writer.publishPost"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "live-blog-writer.newPost",
+        "title": "Live Blog Writer: New Blog Post"
+      },
+      {
+        "command": "live-blog-writer.publishPost",
+        "title": "Live Blog Writer: Publish Post"
+      }
+    ],
+    "configuration": {
+      "title": "Live Blog Writer",
+      "properties": {
+        "liveBlogWriter.platform": {
+          "type": "string",
+          "default": "wordpress",
+          "enum": [
+            "wordpress",
+            "blogger"
+          ],
+          "description": "Blog platform to publish to"
+        },
+        "liveBlogWriter.wordpress.url": {
+          "type": "string",
+          "default": "",
+          "description": "WordPress site URL (e.g., https://example.com)"
+        },
+        "liveBlogWriter.wordpress.username": {
+          "type": "string",
+          "default": "",
+          "description": "WordPress username"
+        },
+        "liveBlogWriter.wordpress.applicationPassword": {
+          "type": "string",
+          "default": "",
+          "description": "WordPress application password"
+        },
+        "liveBlogWriter.blogger.blogId": {
+          "type": "string",
+          "default": "",
+          "description": "Blogger Blog ID"
+        },
+        "liveBlogWriter.blogger.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Blogger API Key"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.x",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0",
+    "@vscode/test-electron": "^2.3.8"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
