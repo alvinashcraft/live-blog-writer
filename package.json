@@ -30,12 +30,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:live-blog-writer.newPost",
-    "onCommand:live-blog-writer.publishPost",
-    "onCommand:live-blog-writer.setWordPressPassword",
-    "onCommand:live-blog-writer.setBloggerApiKey"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -54,6 +49,18 @@
       {
         "command": "live-blog-writer.setBloggerApiKey",
         "title": "Live Blog Writer: Set Blogger API Key"
+      },
+      {
+        "command": "live-blog-writer.openRecentDraft",
+        "title": "Live Blog Writer: Open Recent Draft"
+      },
+      {
+        "command": "live-blog-writer.manageDrafts",
+        "title": "Live Blog Writer: Manage Drafts"
+      },
+      {
+        "command": "live-blog-writer.saveDraft",
+        "title": "Live Blog Writer: Save Draft"
       }
     ],
     "configuration": {

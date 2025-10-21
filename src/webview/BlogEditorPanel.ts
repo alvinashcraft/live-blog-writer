@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { DraftManager, DraftContent } from '../services/DraftManager';
 
 export class BlogEditorPanel {
     public static currentPanel: BlogEditorPanel | undefined;
@@ -6,6 +7,7 @@ export class BlogEditorPanel {
 
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
+    private readonly _draftManager: DraftManager;
     private _disposables: vscode.Disposable[] = [];
     private _postData: { 
         title: string; 
@@ -16,8 +18,10 @@ export class BlogEditorPanel {
         excerpt?: string;
         status?: string;
     } | null = null;
+    private _currentDraftId: string | undefined;
+    private _autoSaveInterval: NodeJS.Timeout | undefined;
 
-    public static createOrShow(extensionUri: vscode.Uri) {
+    public static createOrShow(extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -25,6 +29,10 @@ export class BlogEditorPanel {
         // If we already have a panel, show it
         if (BlogEditorPanel.currentPanel) {
             BlogEditorPanel.currentPanel._panel.reveal(column);
+            // Load draft content if provided
+            if (draftContent) {
+                BlogEditorPanel.currentPanel.loadDraftContent(draftContent);
+            }
             return;
         }
 
@@ -40,15 +48,24 @@ export class BlogEditorPanel {
             }
         );
 
-        BlogEditorPanel.currentPanel = new BlogEditorPanel(panel, extensionUri);
+        BlogEditorPanel.currentPanel = new BlogEditorPanel(panel, extensionUri, draftManager, draftContent);
     }
 
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent) {
         this._panel = panel;
         this._extensionUri = extensionUri;
+        this._draftManager = draftManager || new DraftManager();
+
+        // Load draft content if provided
+        if (draftContent) {
+            this.loadDraftContent(draftContent);
+        }
 
         // Set the webview's initial html content
         this._update();
+
+        // Start auto-save interval (every 30 seconds)
+        this.startAutoSave();
 
         // Listen for when the panel is disposed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -108,6 +125,11 @@ export class BlogEditorPanel {
     public dispose() {
         BlogEditorPanel.currentPanel = undefined;
 
+        // Stop auto-save
+        if (this._autoSaveInterval) {
+            clearInterval(this._autoSaveInterval);
+        }
+
         // Clean up our resources
         this._panel.dispose();
 
@@ -119,6 +141,58 @@ export class BlogEditorPanel {
         }
     }
 
+    private loadDraftContent(draftContent: DraftContent) {
+        this._postData = {
+            title: draftContent.title,
+            content: draftContent.content,
+            publishDate: draftContent.publishDate,
+            tags: draftContent.tags,
+            categories: draftContent.categories,
+            excerpt: draftContent.excerpt,
+            status: draftContent.status
+        };
+        this._currentDraftId = draftContent.metadata.id;
+        
+        // Update webview title to show the draft
+        this._panel.title = `Blog Editor - ${draftContent.title || 'Untitled Draft'}`;
+    }
+
+    private startAutoSave() {
+        // Auto-save every 30 seconds
+        this._autoSaveInterval = setInterval(async () => {
+            try {
+                await this.saveDraftToFile();
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }, 30000);
+    }
+
+    public async saveDraftManually(): Promise<string> {
+        return await this.saveDraftToFile();
+    }
+
+    private async saveDraftToFile(): Promise<string> {
+        if (!this._postData) {
+            throw new Error('No post data to save');
+        }
+
+        try {
+            const draftId = await this._draftManager.saveDraft(this._postData, this._currentDraftId);
+            
+            if (!this._currentDraftId) {
+                this._currentDraftId = draftId;
+                // Update panel title
+                this._panel.title = `Blog Editor - ${this._postData.title || 'Untitled Draft'}`;
+            }
+            
+            return draftId;
+        } catch (error) {
+            console.error('Failed to save draft:', error);
+            throw error;
+        }
+    }
+
     private _update() {
         const webview = this._panel.webview;
         this._panel.webview.html = this._getHtmlForWebview(webview);
@@ -127,6 +201,11 @@ export class BlogEditorPanel {
     private _getHtmlForWebview(webview: vscode.Webview) {
         // Use a nonce to only allow specific scripts to be run
         const nonce = getNonce();
+
+        // Inject draft data if available
+        const draftDataScript = this._postData ? 
+            `window.draftData = ${JSON.stringify(this._postData)};` : 
+            'window.draftData = null;';
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -342,6 +421,7 @@ export class BlogEditorPanel {
 
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
     <script nonce="${nonce}">
+        ${draftDataScript}
         const vscode = acquireVsCodeApi();
         
         // Initialize tag and category arrays
@@ -491,6 +571,43 @@ export class BlogEditorPanel {
 
         // Auto-save periodically
         setInterval(savePostData, 30000); // Every 30 seconds
+
+        // Load draft data if available
+        function loadDraftData(draftData) {
+            if (!draftData) return;
+            
+            document.getElementById('postTitle').value = draftData.title || '';
+            document.getElementById('postStatus').value = draftData.status || 'draft';
+            document.getElementById('publishDate').value = draftData.publishDate || '';
+            document.getElementById('postExcerpt').value = draftData.excerpt || '';
+            
+            // Load tags
+            tags = draftData.tags || [];
+            renderTags();
+            
+            // Load categories
+            categories = draftData.categories || [];
+            renderCategories();
+            
+            // Load content into TinyMCE when it's ready
+            if (tinymce.get('editor')) {
+                tinymce.get('editor').setContent(draftData.content || '');
+            } else {
+                // Wait for TinyMCE to initialize
+                const checkEditor = setInterval(() => {
+                    if (tinymce.get('editor')) {
+                        tinymce.get('editor').setContent(draftData.content || '');
+                        clearInterval(checkEditor);
+                    }
+                }, 100);
+            }
+        }
+
+        // Check if we have draft data from VS Code
+        window.draftData = window.draftData || null;
+        if (window.draftData) {
+            loadDraftData(window.draftData);
+        }
     </script>
 </body>
 </html>`;
