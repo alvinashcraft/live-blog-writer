@@ -13,9 +13,9 @@ The extension was previously using API keys for Blogger authentication, which on
 
 2. **Updated `extension.ts`**:
    - Removed `setBloggerApiKey` command
-   - Added `authenticateBlogger` command that uses VS Code's built-in Google authentication
-   - Modified `publishToBlogger` to request OAuth session with Blogger API scope
-   - Uses VS Code's `vscode.authentication.getSession()` API with Google provider
+   - Added `authenticateBlogger` command that uses a custom OAuth 2.0 flow
+   - Modified `publishToBlogger` to use custom GoogleOAuthService for authentication
+   - Implements OAuth 2.0 with local callback server on port 54321
 
 3. **Updated `package.json`**:
    - Replaced "Set Blogger API Key" command with "Authenticate with Blogger" command
@@ -29,7 +29,7 @@ The extension was previously using API keys for Blogger authentication, which on
 
 ### First-Time Setup
 
-**Prerequisites**: You need to create your own Google OAuth credentials. See [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) for detailed instructions.
+**Prerequisites**: The extension includes built-in OAuth credentials, so end users don't need to create their own. Advanced users can optionally set custom credentials if desired.
 
 1. **Configure Blogger Blog ID**:
    - Open VS Code Settings
@@ -37,18 +37,18 @@ The extension was previously using API keys for Blogger authentication, which on
    - Set **Platform** to "blogger"
    - Set **Blogger Blog ID** to your blog's ID
 
-2. **Set OAuth Credentials**:
+2. **Authenticate with Google**:
    - Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-   - Run: "Live Blog Writer: Set Blogger Credentials"
+   - Run: "Live Blog Writer: Authenticate with Blogger"
+   - Your browser will open to Google's sign-in page
+   - Sign in with your Google account and grant permissions
+   - Return to VS Code - authentication tokens are securely stored
+
+**Advanced**: To use custom OAuth credentials instead of the built-in ones:
+   - Run: "Live Blog Writer: Set Custom Blogger Credentials (Advanced)"
    - Paste your Client ID from Google Cloud Console
    - Paste your Client Secret
-
-3. **Authenticate with Google**:
-   - Open Command Palette
-   - Run: "Live Blog Writer: Authenticate with Blogger"
-   - Sign in with your Google account
-   - Grant permission to manage your Blogger posts
-   - VS Code will securely store your authentication session
+   - See [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) for creating credentials
 
 ### Publishing Posts
 
@@ -57,9 +57,9 @@ The extension was previously using API keys for Blogger authentication, which on
 3. Publish: "Live Blog Writer: Publish Post"
 
 The extension will automatically:
-- Check for a valid Google authentication session
-- Request authentication if needed (prompts user to sign in)
-- Use the OAuth token to publish to Blogger
+- Check for valid OAuth tokens (stored in VS Code's Secret Storage)
+- Request authentication if tokens are expired or missing
+- Use the OAuth access token to publish to Blogger via the Blogger API
 
 ## Technical Details
 
