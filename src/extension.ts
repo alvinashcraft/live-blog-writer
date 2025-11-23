@@ -77,9 +77,6 @@ export function activate(context: vscode.ExtensionContext) {
                 if (!value || value.trim().length === 0) {
                     return 'Client ID cannot be empty';
                 }
-                if (!value.includes('.apps.googleusercontent.com')) {
-                    return 'Invalid Client ID format. Should end with .apps.googleusercontent.com';
-                }
                 return null;
             }
         });
