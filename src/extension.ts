@@ -371,9 +371,9 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
     if (postData.publishDate && status === 'publish') {
         try {
             // Convert datetime-local format (YYYY-MM-DDTHH:mm) to RFC 3339
-            const date = new Date(postData.publishDate);
-            if (!isNaN(date.getTime())) {
-                options.published = date.toISOString();
+            const parsedDate = new Date(postData.publishDate);
+            if (!isNaN(parsedDate.getTime())) {
+                options.published = parsedDate.toISOString();
             }
         } catch (error) {
             console.error('Invalid publish date format:', postData.publishDate);
