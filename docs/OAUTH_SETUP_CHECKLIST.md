@@ -8,7 +8,7 @@ Use this checklist to verify your OAuth credential management setup is complete.
 - [ ] Created Google Cloud project
 - [ ] Enabled Blogger API v3
 - [ ] Created OAuth 2.0 Client ID (Desktop application)
-- [ ] Added redirect URI: `http://localhost:54321/oauth2callback`
+- [ ] Added redirect URI: `http://localhost:54321/callback`
 - [ ] Configured OAuth consent screen
 - [ ] Downloaded client credentials (JSON)
 - [ ] Noted Client ID and Client Secret

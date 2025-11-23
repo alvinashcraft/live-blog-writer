@@ -200,7 +200,7 @@ az keyvault set-policy --name your-keyvault-name \
 **Solutions**:
 
 - Verify credentials in compiled file: `cat out/services/GoogleOAuthService.js | grep DEFAULT_CLIENT_ID`
-- Check Google Cloud Console: Ensure redirect URI `http://localhost:54321/oauth2callback` is added
+- Check Google Cloud Console: Ensure redirect URI `http://localhost:54321/callback` is added
 - Verify OAuth consent screen is configured
 
 ## Alternative Approaches
