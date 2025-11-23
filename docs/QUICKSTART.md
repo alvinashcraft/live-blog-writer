@@ -132,7 +132,7 @@ While writing:
 → Try: Command Palette > `Live Blog Writer: New Blog Post`
 
 ### Need help?
-→ Check the [README](README.md) for full documentation
+→ Check the [README](../README.md) for full documentation
 → Open an issue on [GitHub](https://github.com/alvinashcraft/live-blog-writer)
 
 ## What's Next?
@@ -140,6 +140,6 @@ While writing:
 - Try different formatting options
 - Experiment with tags and categories
 - Schedule posts for future publication
-- Explore the [full documentation](README.md)
+- Explore the [full documentation](../README.md)
 
 Happy blogging! ✍️

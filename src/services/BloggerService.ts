@@ -3,17 +3,20 @@ import axios, { AxiosInstance } from 'axios';
 export class BloggerService {
     private api: AxiosInstance;
     private blogId: string;
-    private apiKey: string;
+    private accessToken: string;
 
-    constructor(blogId: string, apiKey: string) {
+    constructor(blogId: string, accessToken: string) {
         this.blogId = blogId;
-        this.apiKey = apiKey;
+        this.accessToken = accessToken;
         
-        // Create axios instance for Blogger API
+        // Create axios instance for Blogger API with OAuth 2.0 token
         this.api = axios.create({
             baseURL: 'https://www.googleapis.com/blogger/v3',
             headers: {
-                'Content-Type': 'application/json'
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Authorization': `Bearer ${accessToken}`
             }
         });
     }
@@ -22,7 +25,7 @@ export class BloggerService {
      * Create a new blog post
      * @param title Post title
      * @param content Post content (HTML)
-     * @param options Additional options (published date, labels)
+     * @param options Additional options (published date, labels, draft status)
      * @returns Created post data
      */
     async createPost(
@@ -31,6 +34,7 @@ export class BloggerService {
         options?: {
             published?: string;
             labels?: string[];
+            isDraft?: boolean;
         }
     ) {
         try {
@@ -51,14 +55,19 @@ export class BloggerService {
                 postData.labels = options.labels;
             }
 
+            // Determine the endpoint and parameters based on draft status
+            const isDraft = options?.isDraft ?? false;
+            const endpoint = `/blogs/${this.blogId}/posts`;
+            const params: any = {};
+            
+            if (isDraft) {
+                params.isDraft = true;
+            }
+
             const response = await this.api.post(
-                `/blogs/${this.blogId}/posts`,
+                endpoint,
                 postData,
-                {
-                    params: {
-                        key: this.apiKey
-                    }
-                }
+                { params }
             );
 
             return response.data;
@@ -89,11 +98,6 @@ export class BloggerService {
                     },
                     title: title,
                     content: content
-                },
-                {
-                    params: {
-                        key: this.apiKey
-                    }
                 }
             );
 
@@ -117,7 +121,6 @@ export class BloggerService {
                 `/blogs/${this.blogId}/posts`,
                 {
                     params: {
-                        key: this.apiKey,
                         maxResults: maxResults
                     }
                 }

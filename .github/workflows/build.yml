@@ -1,0 +1,52 @@
+name: Build and Package Extension
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Get secrets from Azure Key Vault
+      uses: azure/get-keyvault-secrets@v1
+      id: get-secrets
+      with:
+        keyvault: ${{ secrets.AZURE_KEYVAULT_NAME }}
+        secrets: |
+          BloggerOAuthClientId
+          BloggerOAuthClientSecret
+    
+    - name: Build and package
+      env:
+        BLOGGER_OAUTH_CLIENT_ID: ${{ steps.get-secrets.outputs.BloggerOAuthClientId }}
+        BLOGGER_OAUTH_CLIENT_SECRET: ${{ steps.get-secrets.outputs.BloggerOAuthClientSecret }}
+      run: npm run package
+    
+    - name: Upload VSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: live-blog-writer
+        path: '*.vsix'
+        retention-days: 30
