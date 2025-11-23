@@ -58,7 +58,7 @@ export class GoogleOAuthService {
         
         // Use default embedded client secret
         if (DEFAULT_CLIENT_SECRET === 'YOUR_CLIENT_SECRET_HERE') {
-            throw new Error('OAuth Client Secret not configured. Please set up credentials.');
+            throw new Error('OAuth Client Secret not configured. This is a build configuration issue: the extension was packaged without valid OAuth credentials. Please contact the extension author or maintainer.');
         }
         return DEFAULT_CLIENT_SECRET;
     }
