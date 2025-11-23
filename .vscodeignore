@@ -18,6 +18,7 @@ node_modules/**/*.md
 .env
 .env.*
 !.env.example
+# Exclude build scripts for security - contains credential injection logic that should not be distributed
 scripts/**
 .github/**
 OAUTH_CREDENTIALS_SETUP.md

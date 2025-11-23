@@ -33,20 +33,29 @@ if (!fs.existsSync(serviceFilePath)) {
 // Read the compiled file
 let content = fs.readFileSync(serviceFilePath, 'utf8');
 
+// Helper function to escape special characters for string replacement
+const escapeForReplacement = (str) => {
+    return str.replace(/\$/g, '$$$$'); // Escape $ for replacement string
+};
+
 // Replace the placeholder values
 content = content.replace(
     /const DEFAULT_CLIENT_ID = ['"]YOUR_CLIENT_ID_HERE['"];/,
-    `const DEFAULT_CLIENT_ID = '${clientId}';`
+    `const DEFAULT_CLIENT_ID = '${escapeForReplacement(clientId)}';`
 );
 
 content = content.replace(
     /const DEFAULT_CLIENT_SECRET = ['"]YOUR_CLIENT_SECRET_HERE['"];/,
-    `const DEFAULT_CLIENT_SECRET = '${clientSecret}';`
+    `const DEFAULT_CLIENT_SECRET = '${escapeForReplacement(clientSecret)}';`
 );
 
 // Write back
 fs.writeFileSync(serviceFilePath, content, 'utf8');
 
 console.log('✓ OAuth credentials injected successfully');
-console.log(`  Client ID: ${clientId.substring(0, 20)}...`);
+// Safely mask client ID based on actual length
+const maskedClientId = clientId.length > 20 
+    ? `${clientId.substring(0, 20)}...` 
+    : `${clientId.substring(0, Math.min(clientId.length, 15))}...`;
+console.log(`  Client ID: ${maskedClientId}`);
 console.log('  Client Secret: [REDACTED]');

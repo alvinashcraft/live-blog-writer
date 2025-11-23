@@ -120,6 +120,12 @@ export class GoogleOAuthService {
         }
 
         const expiry = parseInt(expiryStr, 10);
+        
+        // Validate expiry data - if corrupted, clear cache and require re-auth
+        if (isNaN(expiry)) {
+            return null;
+        }
+        
         const now = Date.now();
 
         // If token expires in less than 5 minutes, refresh it
@@ -142,6 +148,7 @@ export class GoogleOAuthService {
 
     /**
      * Refresh access token using refresh token
+     * If refresh fails (e.g., refresh token revoked/invalid), the caller should handle re-authentication
      */
     private async refreshAccessToken(refreshToken: string): Promise<string> {
         const clientId = await this.getClientId();
@@ -164,6 +171,13 @@ export class GoogleOAuthService {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const errorMsg = error.response?.data?.error_description || error.response?.data?.error || error.message;
+                const errorType = error.response?.data?.error;
+                
+                // If refresh token is invalid or revoked, clear stored tokens to force re-authentication
+                if (errorType === 'invalid_grant' || errorMsg.toLowerCase().includes('invalid') || errorMsg.toLowerCase().includes('revoked')) {
+                    await this.clearAuthentication();
+                }
+                
                 throw new Error(`Failed to refresh token: ${errorMsg}`);
             }
             throw error;
@@ -178,6 +192,19 @@ export class GoogleOAuthService {
         const authUrl = await this.buildAuthUrl(state);
 
         return new Promise((resolve, reject) => {
+            let timeoutId: NodeJS.Timeout | null = null;
+            let serverClosed = false;
+
+            const closeServer = () => {
+                if (!serverClosed) {
+                    serverClosed = true;
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                        timeoutId = null;
+                    }
+                    server.close();
+                }
+            };
 
             // Create temporary HTTP server to receive callback
             const server = http.createServer(async (req, res) => {
@@ -191,7 +218,7 @@ export class GoogleOAuthService {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         res.end('<html><body><h1>Authentication Failed</h1><p>You can close this window.</p></body></html>');
-                        server.close();
+                        closeServer();
                         reject(new Error(`OAuth error: ${error}`));
                         return;
                     }
@@ -200,7 +227,7 @@ export class GoogleOAuthService {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         res.end('<html><body><h1>Authentication Failed</h1><p>Invalid state parameter.</p></body></html>');
-                        server.close();
+                        closeServer();
                         reject(new Error('Invalid state parameter'));
                         return;
                     }
@@ -209,16 +236,27 @@ export class GoogleOAuthService {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         res.end('<html><body><h1>Authentication Successful!</h1><p>You can close this window and return to VS Code.</p></body></html>');
-                        server.close();
+                        closeServer();
                         resolve(code);
                     } else {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         res.end('<html><body><h1>Authentication Failed</h1><p>No authorization code received.</p></body></html>');
-                        server.close();
+                        closeServer();
                         reject(new Error('No authorization code received'));
                     }
+                } else {
+                    // Handle unknown paths - return 404 to close connection properly
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    res.writeHead(404, { 'Content-Type': 'text/html' });
+                    res.end('<html><body><h1>Not Found</h1></body></html>');
                 }
+            });
+
+            // Handle server errors (e.g., port already in use)
+            server.on('error', (err) => {
+                closeServer();
+                reject(new Error(`Failed to start OAuth callback server: ${err.message}`));
             });
 
             server.listen(54321, () => {
@@ -226,8 +264,8 @@ export class GoogleOAuthService {
             });
 
             // Timeout after 5 minutes
-            setTimeout(() => {
-                server.close();
+            timeoutId = setTimeout(() => {
+                closeServer();
                 reject(new Error('Authentication timeout'));
             }, 300000);
         });
@@ -265,10 +303,14 @@ export class GoogleOAuthService {
 
     /**
      * Store tokens securely
+     * Note: Google typically only returns a refresh_token on the initial authorization.
+     * Subsequent token refreshes return only a new access_token, preserving the original refresh_token.
+     * This method only updates the refresh_token if present in the response.
      */
     private async storeTokens(tokenResponse: TokenResponse): Promise<void> {
         await this.context.secrets.store(TOKEN_STORAGE_KEY, tokenResponse.access_token);
         
+        // Only update refresh token if provided (typically only on initial auth)
         if (tokenResponse.refresh_token) {
             await this.context.secrets.store(REFRESH_TOKEN_STORAGE_KEY, tokenResponse.refresh_token);
         }

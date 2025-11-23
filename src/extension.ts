@@ -7,6 +7,21 @@ import { GoogleOAuthService } from './services/GoogleOAuthService';
 
 const WORDPRESS_PASSWORD_KEY = 'liveBlogWriter.wordpress.password';
 
+// Interfaces for publish options
+interface WordPressPublishOptions {
+    status?: string;
+    date?: string;
+    excerpt?: string;
+    tags?: string[];
+    categories?: string[];
+}
+
+interface BloggerPublishOptions {
+    published?: string;
+    labels?: string[];
+    isDraft?: boolean;
+}
+
 let draftManager: DraftManager;
 let googleOAuthService: GoogleOAuthService;
 
@@ -98,11 +113,13 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
 
-        if (clientSecret) {
-            await googleOAuthService.setCustomClientCredentials(clientId, clientSecret);
-            await googleOAuthService.clearAuthentication();
-            vscode.window.showInformationMessage('Custom OAuth credentials saved. Please re-authenticate with your credentials.');
+        if (!clientSecret) {
+            return;
         }
+
+        await googleOAuthService.setCustomClientCredentials(clientId, clientSecret);
+        await googleOAuthService.clearAuthentication();
+        vscode.window.showInformationMessage('Custom OAuth credentials saved. Please re-authenticate with your credentials.');
     });
 
     // Register command to authenticate with Google for Blogger
@@ -298,13 +315,7 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
 
     const service = new WordPressService(url, username, password);
     
-    const options: {
-        status?: string;
-        date?: string;
-        excerpt?: string;
-        tags?: string[];
-        categories?: string[];
-    } = {
+    const options: WordPressPublishOptions = {
         status: postData.status || 'draft'
     };
 
@@ -351,11 +362,7 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
 
     const service = new BloggerService(blogId, accessToken);
     
-    const options: {
-        published?: string;
-        labels?: string[];
-        isDraft?: boolean;
-    } = {};
+    const options: BloggerPublishOptions = {};
 
     // Set draft status based on post status
     // Blogger API uses isDraft parameter: true for draft, false for published
@@ -363,7 +370,9 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
     options.isDraft = (status === 'draft');
 
     // Handle publish date - only set if status is 'publish' (published)
-    // For drafts, we don't set a publish date even if one is selected
+    // For drafts, we don't set a publish date even if one is selected because:
+    // 1. The Blogger API ignores the 'published' field for drafts (isDraft=true)
+    // 2. This prevents confusion - drafts should be explicitly published to become scheduled posts
     // For published posts, convert datetime-local format to RFC 3339
     if (postData.publishDate && status === 'publish') {
         try {
