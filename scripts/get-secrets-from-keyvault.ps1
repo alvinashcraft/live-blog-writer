@@ -16,7 +16,7 @@ if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
     Write-Host "If you just installed Azure CLI, try one of these solutions:" -ForegroundColor Yellow
     Write-Host "  1. Close this terminal and open a new one" -ForegroundColor Cyan
     Write-Host "  2. Restart VS Code" -ForegroundColor Cyan
-    Write-Host "  3. Manually add to PATH and reload: `$env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')" -ForegroundColor Cyan
+    Write-Host '  3. Manually add to PATH and reload: $env:Path = [System.Environment]::GetEnvironmentVariable(''Path'',''Machine'') + '';'' + [System.Environment]::GetEnvironmentVariable(''Path'',''User'')' -ForegroundColor Cyan
     Write-Host ""
     Write-Host "If not installed yet, download from: https://aka.ms/installazurecliwindows" -ForegroundColor Yellow
     Write-Host "Default install location: C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin" -ForegroundColor Gray
