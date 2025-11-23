@@ -48,25 +48,36 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 
 ### Blogger Setup
 
-1. Open VS Code Settings (File > Preferences > Settings)
-2. Search for "Live Blog Writer"
-3. Configure the following settings:
-   - **Platform**: Select "blogger"
-   - **Blogger Blog ID**: Your Blogger blog ID (found in your blog's settings or URL)
+1. **Configure VS Code Settings**:
+   - Open VS Code Settings (File > Preferences > Settings)
+   - Search for "Live Blog Writer"
+   - Set **Platform** to "blogger"
+   - Set **Blogger Blog ID** (found in your blog's settings or URL)
 
-4. **Set Blogger API Key Securely**:
+2. **Authenticate with Google**:
    - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
-   - Type "Live Blog Writer: Set Blogger API Key" and press Enter
-   - Enter your Google API key when prompted
-   - The API key will be stored securely in VS Code's Secret Storage
+   - Run: "Live Blog Writer: Authenticate with Blogger"
+   - Your browser will open to Google's sign-in page
+   - Sign in with your Google account and grant permissions
+   - Return to VS Code - you're ready to publish!
 
-#### Getting Blogger API Credentials
+**Note**: The extension uses built-in OAuth credentials. Advanced users who want to use their own Google Cloud project can set custom credentials via "Live Blog Writer: Set Custom Blogger Credentials (Advanced)".
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the Blogger API v3
-4. Create credentials (API Key)
-5. Copy the API key and use it with the "Set Blogger API Key" command
+#### Finding Your Blogger Blog ID
+
+1. Log in to your Blogger dashboard at [blogger.com](https://www.blogger.com)
+2. Select your blog
+3. Look at the URL - it will contain your Blog ID after `/blog/`
+   - Example: `https://www.blogger.com/blog/posts/1234567890123456789`
+   - The Blog ID is: `1234567890123456789`
+4. Or go to Settings > Basic and find it in the "Blog ID" field
+
+#### Important Notes for Blogger Authentication
+
+- The authentication process temporarily uses port `54321` on localhost
+- Make sure this port is not blocked by your firewall
+- If you get a timeout error, ensure no other application is using this port
+- Authentication credentials are stored securely and automatically refreshed
 
 ## Usage
 
@@ -153,18 +164,35 @@ Run the command:
 2. Type "Live Blog Writer: Set WordPress Password"
 3. Enter your WordPress application password (not your regular password)
 
+### "OAuth credentials not configured"
+
+This means the extension's OAuth credentials are not properly set up. This typically only happens if you're building from source. For regular users, the extension includes built-in credentials.
+
+**For Developers**: If you're building from source, see [`OAUTH_CREDENTIALS_SETUP.md`](docs/OAUTH_CREDENTIALS_SETUP.md) for complete setup instructions including Azure Key Vault integration.
+
+### "Access blocked: authorization error" or "Error 401: invalid_client"
+
+If you're using custom credentials:
+- Verify the Blogger API v3 is enabled in your Google Cloud project
+- Check that the redirect URI `http://localhost:54321/callback` is added correctly
+- Ensure you added yourself as a test user in the OAuth consent screen
+
+See the [Google OAuth Setup Guide](docs/GOOGLE_OAUTH_SETUP.md) for detailed instructions.
+
 ### "Blogger configuration is incomplete"
 
 Make sure you have set:
-- Blogger Blog ID in settings
-- Blogger API Key using the "Live Blog Writer: Set Blogger API Key" command
 
-### "Blogger API key not set"
+- Blogger Blog ID in settings
+- Run "Live Blog Writer: Authenticate with Blogger" to authenticate
+
+### "Google authentication is required"
 
 Run the command:
+
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Type "Live Blog Writer: Set Blogger API Key"
-3. Enter your Blogger API key
+2. Type "Live Blog Writer: Authenticate with Blogger"
+3. Sign in with your Google account and grant permissions
 
 ### Posts not appearing
 
@@ -181,6 +209,8 @@ npm install
 npm run compile
 ```
 
+**Note for Production Builds**: To include OAuth credentials in the packaged extension, see [`OAUTH_CREDENTIALS_SETUP.md`](docs/OAUTH_CREDENTIALS_SETUP.md) for instructions on setting up Azure Key Vault integration.
+
 ### Running the Extension
 
 1. Open the project in VS Code
@@ -193,13 +223,21 @@ npm run compile
 npm test
 ```
 
+### Developer Documentation
+
+- [`docs/OAUTH_CREDENTIALS_SETUP.md`](docs/OAUTH_CREDENTIALS_SETUP.md) - Complete guide for OAuth credential management with Azure Key Vault
+- [`docs/GOOGLE_OAUTH_SETUP.md`](docs/GOOGLE_OAUTH_SETUP.md) - User-facing guide for setting up Google OAuth
+- [`docs/BLOGGER_OAUTH_SETUP.md`](docs/BLOGGER_OAUTH_SETUP.md) - Technical documentation for Blogger OAuth implementation
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) - Quick start guide for new users
+- [`.github/workflows/README.md`](.github/workflows/README.md) - GitHub Actions CI/CD setup
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-See LICENSE file for details.
+See [LICENSE](LICENSE) file for details.
 
 ## Roadmap
 

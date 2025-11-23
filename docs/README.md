@@ -15,8 +15,15 @@ This folder contains development and contributor documentation for the Live Blog
 
 ## User Documentation
 
-User-facing documentation remains in the root directory:
-- **README.md** - Main project documentation (shown on GitHub and marketplace)
+- **README.md** (in root directory) - Main project documentation (shown on GitHub and marketplace)
+- **LICENSE** (in root directory) - License information
 - **QUICKSTART.md** - Quick start guide for users
 - **CHANGELOG.md** - Version history and changes
-- **LICENSE** - License information
+
+## OAuth Setup Documentation
+
+- **OAUTH_CREDENTIALS_SETUP.md** - Complete guide for OAuth credential management with Azure Key Vault
+- **OAUTH_SETUP_CHECKLIST.md** - Checklist for OAuth setup
+- **OAUTH_SETUP_QUICK_REFERENCE.md** - Quick reference for OAuth setup
+- **GOOGLE_OAUTH_SETUP.md** - User-facing guide for setting up Google OAuth
+- **BLOGGER_OAUTH_SETUP.md** - Technical documentation for Blogger OAuth implementation

@@ -3,7 +3,7 @@
   "displayName": "Live Blog Writer",
   "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
   "icon": "images/writerIcon.png",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -55,8 +55,12 @@
         "title": "Live Blog Writer: Set WordPress Password"
       },
       {
-        "command": "live-blog-writer.setBloggerApiKey",
-        "title": "Live Blog Writer: Set Blogger API Key"
+        "command": "live-blog-writer.setBloggerClientId",
+        "title": "Live Blog Writer: Set Custom Blogger Credentials (Advanced)"
+      },
+      {
+        "command": "live-blog-writer.authenticateBlogger",
+        "title": "Live Blog Writer: Authenticate with Blogger"
       },
       {
         "command": "live-blog-writer.openRecentDraft",
@@ -102,14 +106,16 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run inject-credentials",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "inject-credentials": "node scripts/inject-credentials.js",
+    "build": "npm run compile && npm run inject-credentials",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "vsce package",
-    "publish": "vsce publish"
+    "package": "npm run build && vsce package --allow-star-activation",
+    "publish": "npm run build && vsce publish"
   },
   "devDependencies": {
     "@types/node": "^20.x",

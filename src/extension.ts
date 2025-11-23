@@ -3,17 +3,19 @@ import { BlogEditorPanel } from './webview/BlogEditorPanel';
 import { WordPressService } from './services/WordPressService';
 import { BloggerService } from './services/BloggerService';
 import { DraftManager, DraftMetadata } from './services/DraftManager';
+import { GoogleOAuthService } from './services/GoogleOAuthService';
 
 const WORDPRESS_PASSWORD_KEY = 'liveBlogWriter.wordpress.password';
-const BLOGGER_API_KEY = 'liveBlogWriter.blogger.apiKey';
 
 let draftManager: DraftManager;
+let googleOAuthService: GoogleOAuthService;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Live Blog Writer extension is now active!');
     
-    // Initialize draft manager
+    // Initialize draft manager and OAuth service
     draftManager = new DraftManager();
+    googleOAuthService = new GoogleOAuthService(context);
 
     // Register command to create a new blog post
     let newPostCommand = vscode.commands.registerCommand('live-blog-writer.newPost', () => {
@@ -35,18 +37,81 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // Register command to set Blogger API key
-    let setBloggerApiKeyCommand = vscode.commands.registerCommand('live-blog-writer.setBloggerApiKey', async () => {
-        const apiKey = await vscode.window.showInputBox({
-            prompt: 'Enter your Blogger API key',
-            password: true,
+    // Register command to set custom Blogger OAuth credentials (optional - for advanced users)
+    let setBloggerClientIdCommand = vscode.commands.registerCommand('live-blog-writer.setBloggerClientId', async () => {
+        const isUsingCustom = await googleOAuthService.isUsingCustomCredentials();
+        
+        if (isUsingCustom) {
+            const action = await vscode.window.showWarningMessage(
+                'You are currently using custom OAuth credentials. What would you like to do?',
+                'Update Credentials',
+                'Revert to Default',
+                'Cancel'
+            );
+
+            if (action === 'Revert to Default') {
+                await googleOAuthService.clearCustomClientCredentials();
+                await googleOAuthService.clearAuthentication();
+                vscode.window.showInformationMessage('Reverted to default OAuth credentials. Please re-authenticate.');
+                return;
+            } else if (action !== 'Update Credentials') {
+                return;
+            }
+        } else {
+            const proceed = await vscode.window.showInformationMessage(
+                'This extension comes with built-in OAuth credentials. You only need custom credentials if you want to use your own Google Cloud project.\n\nDo you want to set up custom credentials?',
+                'Yes',
+                'No'
+            );
+
+            if (proceed !== 'Yes') {
+                return;
+            }
+        }
+
+        const clientId = await vscode.window.showInputBox({
+            prompt: 'Enter your Google OAuth Client ID',
+            placeHolder: 'your-client-id.apps.googleusercontent.com',
             ignoreFocusOut: true,
-            placeHolder: 'Blogger API key'
+            validateInput: (value) => {
+                if (!value || value.trim().length === 0) {
+                    return 'Client ID cannot be empty';
+                }
+                return null;
+            }
         });
 
-        if (apiKey) {
-            await context.secrets.store(BLOGGER_API_KEY, apiKey);
-            vscode.window.showInformationMessage('Blogger API key saved securely.');
+        if (!clientId) {
+            return;
+        }
+
+        const clientSecret = await vscode.window.showInputBox({
+            prompt: 'Enter your Google OAuth Client Secret',
+            placeHolder: 'GOCSPX-...',
+            password: true,
+            ignoreFocusOut: true,
+            validateInput: (value) => {
+                if (!value || value.trim().length === 0) {
+                    return 'Client Secret cannot be empty';
+                }
+                return null;
+            }
+        });
+
+        if (clientSecret) {
+            await googleOAuthService.setCustomClientCredentials(clientId, clientSecret);
+            await googleOAuthService.clearAuthentication();
+            vscode.window.showInformationMessage('Custom OAuth credentials saved. Please re-authenticate with your credentials.');
+        }
+    });
+
+    // Register command to authenticate with Google for Blogger
+    let authenticateBloggerCommand = vscode.commands.registerCommand('live-blog-writer.authenticateBlogger', async () => {
+        try {
+            await googleOAuthService.authenticate();
+            vscode.window.showInformationMessage('Successfully authenticated with Google for Blogger!');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to authenticate: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     });
 
@@ -208,7 +273,8 @@ export function activate(context: vscode.ExtensionContext) {
         newPostCommand, 
         publishPostCommand, 
         setWordPressPasswordCommand, 
-        setBloggerApiKeyCommand,
+        setBloggerClientIdCommand,
+        authenticateBloggerCommand,
         openRecentDraftCommand,
         manageDraftsCommand,
         saveDraftCommand
@@ -232,7 +298,13 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
 
     const service = new WordPressService(url, username, password);
     
-    const options: any = {
+    const options: {
+        status?: string;
+        date?: string;
+        excerpt?: string;
+        tags?: string[];
+        categories?: string[];
+    } = {
         status: postData.status || 'draft'
     };
 
@@ -259,24 +331,50 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
 
 async function publishToBlogger(postData: any, config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogId = config.get<string>('blogger.blogId');
-    const apiKey = await context.secrets.get(BLOGGER_API_KEY);
 
     if (!blogId) {
         vscode.window.showErrorMessage('Blogger Blog ID is not configured. Please configure it in settings.');
         return;
     }
 
-    if (!apiKey) {
-        vscode.window.showErrorMessage('Blogger API key not set. Please run "Live Blog Writer: Set Blogger API Key" command first.');
+    // Get Google OAuth token for Blogger API
+    let accessToken;
+    try {
+        accessToken = await googleOAuthService.authenticate();
+    } catch (error) {
+        vscode.window.showErrorMessage(
+            `Failed to authenticate with Google: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+            'Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.'
+        );
         return;
     }
 
-    const service = new BloggerService(blogId, apiKey);
+    const service = new BloggerService(blogId, accessToken);
     
-    const options: any = {};
+    const options: {
+        published?: string;
+        labels?: string[];
+        isDraft?: boolean;
+    } = {};
 
-    if (postData.publishDate) {
-        options.published = postData.publishDate;
+    // Set draft status based on post status
+    // Blogger API uses isDraft parameter: true for draft, false for published
+    const status = postData.status || 'draft';
+    options.isDraft = (status === 'draft');
+
+    // Handle publish date - only set if status is 'publish' (published)
+    // For drafts, we don't set a publish date even if one is selected
+    // For published posts, convert datetime-local format to RFC 3339
+    if (postData.publishDate && status === 'publish') {
+        try {
+            // Convert datetime-local format (YYYY-MM-DDTHH:mm) to RFC 3339
+            const parsedDate = new Date(postData.publishDate);
+            if (!isNaN(parsedDate.getTime())) {
+                options.published = parsedDate.toISOString();
+            }
+        } catch (error) {
+            console.error('Invalid publish date format:', postData.publishDate);
+        }
     }
 
     // Combine tags and categories as Blogger labels
@@ -294,7 +392,8 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
 
     const result = await service.createPost(postData.title, postData.content, options);
     
-    vscode.window.showInformationMessage(`Post published successfully to Blogger! Post ID: ${result.id}`);
+    const statusMessage = options.isDraft ? 'saved as draft' : 'published';
+    vscode.window.showInformationMessage(`Post ${statusMessage} successfully to Blogger! Post ID: ${result.id}`);
 }
 
 export function deactivate() {}

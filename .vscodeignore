@@ -15,3 +15,10 @@ node_modules/**/.git/**
 node_modules/**/test/**
 node_modules/**/tests/**
 node_modules/**/*.md
+.env
+.env.*
+!.env.example
+scripts/**
+.github/**
+OAUTH_CREDENTIALS_SETUP.md
+OAUTH_SETUP_QUICK_REFERENCE.md
