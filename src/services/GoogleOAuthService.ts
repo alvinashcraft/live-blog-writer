@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as http from 'http';
+import * as crypto from 'crypto';
 import axios from 'axios';
 
 // Default OAuth credentials for the extension
@@ -303,7 +304,8 @@ export class GoogleOAuthService {
      * Generate random state for CSRF protection
      */
     private generateRandomState(): string {
-        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        // Generate cryptographically secure random state for CSRF protection
+        return crypto.randomBytes(32).toString('hex');
     }
 
     /**
