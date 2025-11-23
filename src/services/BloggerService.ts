@@ -58,7 +58,7 @@ export class BloggerService {
             // Determine the endpoint and parameters based on draft status
             const isDraft = options?.isDraft ?? false;
             const endpoint = `/blogs/${this.blogId}/posts`;
-            const params: any = {};
+            const params: { isDraft?: boolean } = {};
             
             if (isDraft) {
                 params.isDraft = true;

@@ -90,11 +90,6 @@ export class GoogleOAuthService {
      * Authenticate with Google OAuth and get access token
      */
     async authenticate(): Promise<string> {
-        // Get client credentials (custom or default)
-        // Errors will be thrown by getClientId/getClientSecret if not configured
-        const clientId = await this.getClientId();
-        const clientSecret = await this.getClientSecret();
-
         // Check if we have a valid cached token
         const cachedToken = await this.getCachedToken();
         if (cachedToken) {
@@ -102,6 +97,7 @@ export class GoogleOAuthService {
         }
 
         // Start OAuth flow
+        // Note: Client credentials will be retrieved by the methods that need them
         const authCode = await this.getAuthorizationCode();
         const tokenResponse = await this.exchangeCodeForToken(authCode);
         

@@ -301,7 +301,13 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
 
     const service = new WordPressService(url, username, password);
     
-    const options: any = {
+    const options: {
+        status?: string;
+        date?: string;
+        excerpt?: string;
+        tags?: string[];
+        categories?: string[];
+    } = {
         status: postData.status || 'draft'
     };
 
@@ -339,13 +345,20 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
     try {
         accessToken = await googleOAuthService.authenticate();
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to authenticate with Google: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        vscode.window.showErrorMessage(
+            `Failed to authenticate with Google: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+            'Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.'
+        );
         return;
     }
 
     const service = new BloggerService(blogId, accessToken);
     
-    const options: any = {};
+    const options: {
+        published?: string;
+        labels?: string[];
+        isDraft?: boolean;
+    } = {};
 
     // Set draft status based on post status
     // Blogger API uses isDraft parameter: true for draft, false for published
