@@ -15,7 +15,6 @@ docs/**
 webpack.config.js
 scripts/**
 node_modules/**
-!node_modules/axios/**
 .env
 .env.*
 !.env.example

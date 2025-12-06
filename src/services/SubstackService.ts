@@ -86,14 +86,25 @@ export class SubstackService {
             });
 
             // Extract cookies from response
-            const cookies = response.headers['set-cookie'];
-            if (cookies) {
-                const sidCookie = cookies.find(c => c.startsWith('connect.sid='));
-                if (sidCookie) {
-                    this.connectSid = sidCookie.split(';')[0].split('=')[1];
-                    this.api.defaults.headers.common['Cookie'] = `connect.sid=${this.connectSid}`;
-                    this.baseAPI.defaults.headers.common['Cookie'] = `connect.sid=${this.connectSid}`;
+            const setCookieHeader = response.headers['set-cookie'] as string | string[] | undefined;
+            let sidCookie: string | undefined;
+            
+            if (Array.isArray(setCookieHeader)) {
+                sidCookie = setCookieHeader.find(c => c.startsWith('connect.sid='));
+            } else if (setCookieHeader && typeof setCookieHeader === 'string') {
+                if (setCookieHeader.startsWith('connect.sid=')) {
+                    sidCookie = setCookieHeader;
                 }
+            }
+            
+            if (sidCookie) {
+                this.connectSid = sidCookie.split(';')[0].split('=')[1];
+                // Note: Setting Cookie header manually. For better security in production,
+                // consider using axios interceptors or per-request cookie handling.
+                this.api.defaults.headers.common['Cookie'] = `connect.sid=${this.connectSid}`;
+                this.baseAPI.defaults.headers.common['Cookie'] = `connect.sid=${this.connectSid}`;
+            } else {
+                throw new Error('Failed to extract session cookie from login response');
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {

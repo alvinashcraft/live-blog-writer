@@ -6,7 +6,7 @@ import { BloggerService } from './services/BloggerService';
 import { MediumService } from './services/MediumService';
 import { GhostService } from './services/GhostService';
 import { SubstackService } from './services/SubstackService';
-import { DraftManager, DraftContent } from './services/DraftManager';
+import { DraftManager } from './services/DraftManager';
 import { GoogleOAuthService } from './services/GoogleOAuthService';
 
 const WORDPRESS_PASSWORD_KEY = 'liveBlogWriter.wordpress.password';
@@ -508,7 +508,12 @@ export function activate(context: vscode.ExtensionContext) {
                 placeHolder: 'your-email@example.com',
                 ignoreFocusOut: true,
                 validateInput: (value) => {
-                    if (!value || !value.includes('@')) {
+                    if (!value) {
+                        return 'Email address is required';
+                    }
+                    // RFC 5322 compliant email validation (simplified)
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(value)) {
                         return 'Please enter a valid email address';
                     }
                     return null;

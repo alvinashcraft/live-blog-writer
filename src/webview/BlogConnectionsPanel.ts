@@ -690,16 +690,16 @@ export class BlogConnectionsPanel {
             </div>
 
             <div class="blog-actions">
-                <button class="btn btn-small btn-secondary" onclick='editBlog(${JSON.stringify(blog)})'>Edit</button>
+                <button class="btn btn-small btn-secondary" data-action="edit" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}" data-blog-id="${this.escapeHtml(blog.id || '')}" data-blog-username="${this.escapeHtml(blog.username || '')}">Edit</button>
                 ${blog.platform === 'blogger' ? 
                     (blog.hasCredential ? 
-                        '<button class="btn btn-small btn-secondary" onclick="authenticateBlogger()">Re-authenticate</button>' :
-                        '<button class="btn btn-small btn-secondary" onclick="authenticateBlogger()">Authenticate</button>') :
-                    '<button class="btn btn-small btn-secondary" onclick=\'setCredential("' + this.escapeHtml(blog.name) + '", "' + blog.platform + '")\'>' + (blog.hasCredential ? 'Update Credential' : 'Set Credential') + '</button>'
+                        '<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">Re-authenticate</button>' :
+                        '<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">Authenticate</button>') :
+                    '<button class="btn btn-small btn-secondary" data-action="set-credential" data-blog-name="' + this.escapeHtml(blog.name) + '" data-blog-platform="' + blog.platform + '">' + (blog.hasCredential ? 'Update Credential' : 'Set Credential') + '</button>'
                 }
-                <button class="btn btn-small btn-secondary" onclick='setDefaultBlog("${this.escapeHtml(blog.name)}")'>${blog.isDefault ? 'Unset Default' : 'Set Default'}</button>
-                <button class="btn btn-small btn-secondary" onclick='testConnection("${this.escapeHtml(blog.name)}", "${blog.platform}")'>Test</button>
-                <button class="btn btn-small btn-secondary" onclick='deleteBlog("${this.escapeHtml(blog.name)}")'>Delete</button>
+                <button class="btn btn-small btn-secondary" data-action="set-default" data-blog-name="${this.escapeHtml(blog.name)}">${blog.isDefault ? 'Unset Default' : 'Set Default'}</button>
+                <button class="btn btn-small btn-secondary" data-action="test" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}">Test</button>
+                <button class="btn btn-small btn-secondary" data-action="delete" data-blog-name="${this.escapeHtml(blog.name)}">Delete</button>
             </div>
         </div>
         `).join('')}
@@ -846,6 +846,42 @@ export class BlogConnectionsPanel {
             document.getElementById('credentialGroup').style.display = 'block';
             document.getElementById('blogModal').classList.add('active');
         }
+
+        // Event delegation for blog action buttons
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            if (!target.matches('[data-action]')) return;
+            
+            const action = target.getAttribute('data-action');
+            const blogName = target.getAttribute('data-blog-name');
+            const platform = target.getAttribute('data-blog-platform');
+            
+            switch (action) {
+                case 'edit':
+                    editBlog({
+                        name: blogName,
+                        platform: platform,
+                        id: target.getAttribute('data-blog-id'),
+                        username: target.getAttribute('data-blog-username')
+                    });
+                    break;
+                case 'authenticate-blogger':
+                    authenticateBlogger();
+                    break;
+                case 'set-credential':
+                    setCredential(blogName, platform);
+                    break;
+                case 'set-default':
+                    setDefaultBlog(blogName);
+                    break;
+                case 'test':
+                    testConnection(blogName, platform);
+                    break;
+                case 'delete':
+                    deleteBlog(blogName);
+                    break;
+            }
+        });
 
         function editBlog(blog) {
             document.getElementById('modalTitle').textContent = 'Edit Blog';

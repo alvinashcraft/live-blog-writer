@@ -6,9 +6,7 @@ import axios from 'axios';
 // Default OAuth credentials for the extension
 // These are embedded for ease of use. Advanced users can override via settings.
 // Note: For desktop apps, the client secret cannot be truly "secret" - this is expected by OAuth providers
-// @ts-ignore - INJECTED_CLIENT_ID and INJECTED_CLIENT_SECRET are defined by webpack at build time
 const DEFAULT_CLIENT_ID = typeof INJECTED_CLIENT_ID !== 'undefined' ? INJECTED_CLIENT_ID : 'YOUR_CLIENT_ID_HERE';
-// @ts-ignore
 const DEFAULT_CLIENT_SECRET = typeof INJECTED_CLIENT_SECRET !== 'undefined' ? INJECTED_CLIENT_SECRET : 'YOUR_CLIENT_SECRET_HERE';
 
 const OAUTH_REDIRECT_URI = 'http://localhost:54321/callback';
