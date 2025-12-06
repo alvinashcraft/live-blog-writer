@@ -16,8 +16,7 @@ The Live Blog Writer extension now supports multiple blog platforms and allows y
 
 Use the command palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) and run:
 
-- **"Live Blog Writer: Manage Blog Configurations"
-**
+- **"Live Blog Writer: Manage Blog Configurations"**
 
 This allows you to:
 
