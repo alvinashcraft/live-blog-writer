@@ -151,10 +151,27 @@ export class SubstackService {
     /**
      * Convert HTML content to Substack's structured format
      * Substack uses a ProseMirror-like document structure
+     * 
+     * LIMITATION: This is a basic implementation that only handles:
+     * - Paragraphs (plain text)
+     * - Headings (h1, h2, h3)
+     * 
+     * NOT CURRENTLY SUPPORTED:
+     * - Bold, italic, underline, strikethrough
+     * - Links and link formatting
+     * - Images and image captions
+     * - Lists (ordered/unordered)
+     * - Blockquotes
+     * - Code blocks
+     * - Embeds and widgets
+     * 
+     * For production use with rich formatting, consider:
+     * - Using an HTML parser library to build proper ProseMirror nodes
+     * - Adding support for marks (bold, italic, links, etc.)
+     * - Handling nested structures and attributes
      */
     private htmlToSubstackBody(htmlContent: string): any {
         // Simple conversion - split by paragraphs and create structured content
-        // This is a basic implementation; could be enhanced with more HTML parsing
         const paragraphs = htmlContent
             .split(/<\/p>|<br\s*\/?>/)
             .map(p => p.replace(/<p[^>]*>/gi, '').trim())

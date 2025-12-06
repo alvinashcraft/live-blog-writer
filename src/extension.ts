@@ -589,7 +589,22 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-// Helper functions for blog configuration management
+/**
+ * Helper functions for blog configuration management
+ * 
+ * NOTE: These functions are intentionally kept even though the manageBlogConfigurations
+ * command now uses BlogConnectionsPanel (visual webview UI) instead.
+ * 
+ * Reasons for keeping these functions:
+ * 1. Provide programmatic/command-line alternative to the visual UI
+ * 2. Can be called from scripts, tests, or other extensions
+ * 3. Serve as fallback if webview approach has issues
+ * 4. Useful for automated testing and CI/CD scenarios
+ * 5. May be exposed as separate commands in the future
+ * 
+ * While not currently wired to UI commands, they remain valuable utilities.
+ */
+
 async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogName = await vscode.window.showInputBox({
         prompt: 'Enter a name for this blog configuration',

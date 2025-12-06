@@ -148,7 +148,17 @@ export class GhostService {
 
     /**
      * Convert HTML to Mobiledoc format (simplified version)
-     * For better results, consider using a proper HTML to Mobiledoc converter
+     * 
+     * LIMITATION: This uses Ghost's HTML card which preserves the HTML as-is.
+     * While this maintains the content, it may not render optimally in Ghost's editor.
+     * 
+     * For production use, consider:
+     * - Using a proper HTML-to-Mobiledoc converter library
+     * - Converting to native Mobiledoc cards/atoms for better editor support
+     * - Handling images, links, and rich formatting explicitly
+     * 
+     * Current implementation is sufficient for basic publishing but formatting
+     * and structure from the TinyMCE editor may be lost in Ghost's editor.
      */
     private htmlToMobiledoc(html: string): string {
         // Create a simple mobiledoc structure with HTML card

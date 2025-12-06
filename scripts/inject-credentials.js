@@ -1,4 +1,15 @@
 /**
+ * DEPRECATED: This script is no longer used in the primary build process.
+ * 
+ * OAuth credentials are now injected at build time via webpack.DefinePlugin
+ * (see webpack.config.js). The webpack approach is more reliable because it
+ * operates on the AST before minification, whereas this script attempts
+ * string replacement after bundling which can fail with minified code.
+ * 
+ * This script is kept for reference and potential fallback scenarios,
+ * but the primary build process (npm run package:production) uses webpack.
+ * 
+ * Original purpose:
  * Build script to inject OAuth credentials from Azure Key Vault or environment variables
  * This keeps credentials out of source control while making them available at runtime
  */
