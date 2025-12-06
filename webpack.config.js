@@ -8,7 +8,7 @@ const webpack = require('webpack');
 // Load environment variables
 require('dotenv').config();
 
-/**@type {import('webpack').Configuration}*/
+/** @type {import('webpack').Configuration} */
 const config = {
   target: 'node',
   entry: './src/extension.ts',
