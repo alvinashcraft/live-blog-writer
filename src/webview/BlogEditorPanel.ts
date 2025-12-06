@@ -17,6 +17,7 @@ export class BlogEditorPanel {
         categories?: string[];
         excerpt?: string;
         status?: string;
+        selectedBlog?: string;
     } | null = null;
     private _currentDraftId: string | undefined;
     private _autoSaveInterval: NodeJS.Timeout | undefined;
@@ -83,7 +84,8 @@ export class BlogEditorPanel {
                             tags: message.tags,
                             categories: message.categories,
                             excerpt: message.excerpt,
-                            status: message.status
+                            status: message.status,
+                            selectedBlog: message.selectedBlog
                         };
                         console.log('Post data saved:', this._postData);
                         return;
@@ -112,6 +114,7 @@ export class BlogEditorPanel {
         categories?: string[];
         excerpt?: string;
         status?: string;
+        selectedBlog?: string;
     } | null> {
         // Request current data from webview
         await this._panel.webview.postMessage({ command: 'getPostData' });
@@ -202,10 +205,18 @@ export class BlogEditorPanel {
         // Use a nonce to only allow specific scripts to be run
         const nonce = getNonce();
 
+        // Get blog configurations
+        const config = vscode.workspace.getConfiguration('liveBlogWriter');
+        const blogs = config.get<any[]>('blogs', []);
+        const defaultBlog = config.get<string>('defaultBlog', '');
+
         // Inject draft data if available
         const draftDataScript = this._postData ? 
             `window.draftData = ${JSON.stringify(this._postData)};` : 
             'window.draftData = null;';
+        
+        // Inject blog configurations and default blog
+        const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs)}; window.defaultBlog = ${JSON.stringify(defaultBlog)};`;
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -363,6 +374,14 @@ export class BlogEditorPanel {
             <h2>Post Details</h2>
             
             <div class="form-group">
+                <label for="selectedBlog">Selected Blog</label>
+                <select id="selectedBlog">
+                    <option value="">-- Select a blog --</option>
+                </select>
+                <div class="hint-text">Choose which blog to publish to</div>
+            </div>
+
+            <div class="form-group">
                 <label for="postTitle">Title *</label>
                 <input type="text" id="postTitle" placeholder="Enter post title..." required />
             </div>
@@ -422,11 +441,15 @@ export class BlogEditorPanel {
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
     <script nonce="${nonce}">
         ${draftDataScript}
+        ${blogConfigsScript}
         const vscode = acquireVsCodeApi();
         
         // Initialize tag and category arrays
         let tags = [];
         let categories = [];
+        
+        // Blog configurations will be injected by VS Code
+        window.blogConfigs = window.blogConfigs || [];
 
         // Initialize TinyMCE
         tinymce.init({
@@ -510,6 +533,26 @@ export class BlogEditorPanel {
             savePostData();
         };
 
+        // Populate blog selection dropdown
+        function populateBlogSelection() {
+            const blogSelect = document.getElementById('selectedBlog');
+            blogSelect.innerHTML = '<option value="">-- Select a blog --</option>';
+            
+            if (window.blogConfigs && window.blogConfigs.length > 0) {
+                window.blogConfigs.forEach(blog => {
+                    const option = document.createElement('option');
+                    option.value = blog.name;
+                    option.textContent = \`\${blog.name} (\${blog.platform})\`;
+                    blogSelect.appendChild(option);
+                });
+                
+                // Set default blog if configured and not already set by draft data
+                if (window.defaultBlog && !blogSelect.value) {
+                    blogSelect.value = window.defaultBlog;
+                }
+            }
+        }
+
         // Save post data to extension
         function savePostData() {
             const title = document.getElementById('postTitle').value;
@@ -517,6 +560,7 @@ export class BlogEditorPanel {
             const publishDate = document.getElementById('publishDate').value;
             const excerpt = document.getElementById('postExcerpt').value;
             const status = document.getElementById('postStatus').value;
+            const selectedBlog = document.getElementById('selectedBlog').value;
             
             vscode.postMessage({
                 command: 'savePostData',
@@ -526,7 +570,8 @@ export class BlogEditorPanel {
                 tags: tags,
                 categories: categories,
                 excerpt: excerpt || undefined,
-                status: status
+                status: status,
+                selectedBlog: selectedBlog || undefined
             });
         }
 
@@ -554,6 +599,7 @@ export class BlogEditorPanel {
         });
 
         // Listen for changes on all metadata fields
+        document.getElementById('selectedBlog').addEventListener('change', savePostData);
         document.getElementById('postTitle').addEventListener('input', savePostData);
         document.getElementById('postStatus').addEventListener('change', savePostData);
         document.getElementById('publishDate').addEventListener('change', savePostData);
@@ -576,6 +622,9 @@ export class BlogEditorPanel {
         function loadDraftData(draftData) {
             if (!draftData) return;
             
+            if (draftData.selectedBlog) {
+                document.getElementById('selectedBlog').value = draftData.selectedBlog;
+            }
             document.getElementById('postTitle').value = draftData.title || '';
             document.getElementById('postStatus').value = draftData.status || 'draft';
             document.getElementById('publishDate').value = draftData.publishDate || '';
@@ -602,6 +651,9 @@ export class BlogEditorPanel {
                 }, 100);
             }
         }
+
+        // Initialize blog selection
+        populateBlogSelection();
 
         // Check if we have draft data from VS Code
         window.draftData = window.draftData || null;

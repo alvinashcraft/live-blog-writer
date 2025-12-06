@@ -1,9 +1,9 @@
 {
   "name": "live-blog-writer",
   "displayName": "Live Blog Writer",
-  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress and Blogger blogs",
+  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress, Blogger, Medium, Ghost, and Substack blogs",
   "icon": "images/writerIcon.png",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -20,6 +20,9 @@
     "blogging",
     "wordpress",
     "blogger",
+    "medium",
+    "ghost",
+    "substack",
     "wysiwyg",
     "editor",
     "publishing",
@@ -39,7 +42,7 @@
   },
   "qna": "marketplace",
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -73,6 +76,22 @@
       {
         "command": "live-blog-writer.saveDraft",
         "title": "Live Blog Writer: Save Draft"
+      },
+      {
+        "command": "live-blog-writer.manageBlogConfigurations",
+        "title": "Live Blog Writer: Manage Blog Connections"
+      },
+      {
+        "command": "live-blog-writer.setMediumToken",
+        "title": "Live Blog Writer: Set Medium Integration Token"
+      },
+      {
+        "command": "live-blog-writer.setGhostApiKey",
+        "title": "Live Blog Writer: Set Ghost API Key"
+      },
+      {
+        "command": "live-blog-writer.setSubstackApiKey",
+        "title": "Live Blog Writer: Set Substack Credentials"
       }
     ],
     "configuration": {
@@ -83,39 +102,91 @@
           "default": "wordpress",
           "enum": [
             "wordpress",
-            "blogger"
+            "blogger",
+            "medium",
+            "ghost",
+            "substack"
           ],
-          "description": "Blog platform to publish to"
+          "description": "[DEPRECATED] Blog platform to publish to. Use liveBlogWriter.blogs for multiple blog support.",
+          "deprecationMessage": "Use liveBlogWriter.blogs array instead for better multi-blog support"
+        },
+        "liveBlogWriter.blogs": {
+          "type": "array",
+          "default": [],
+          "description": "Array of blog configurations. Each entry should have: name, platform, id (optional), username (optional)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for this blog configuration"
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "wordpress",
+                  "blogger",
+                  "medium",
+                  "ghost",
+                  "substack"
+                ],
+                "description": "Blog platform type"
+              },
+              "id": {
+                "type": "string",
+                "description": "Blog ID (for Blogger), URL (for WordPress/Ghost), or hostname (for Substack). Optional for Medium."
+              },
+              "username": {
+                "type": "string",
+                "description": "Username (for WordPress, Substack, Medium). Optional for others."
+              }
+            },
+            "required": [
+              "name",
+              "platform"
+            ]
+          }
+        },
+        "liveBlogWriter.defaultBlog": {
+          "type": "string",
+          "default": "",
+          "description": "Default blog name to use when publishing. Must match the 'name' field of a blog in liveBlogWriter.blogs. If not set or not found, you'll be prompted to select a blog."
         },
         "liveBlogWriter.wordpress.url": {
           "type": "string",
           "default": "",
-          "description": "WordPress site URL (e.g., https://example.com)"
+          "description": "[DEPRECATED] WordPress site URL. Use liveBlogWriter.blogs instead.",
+          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
         },
         "liveBlogWriter.wordpress.username": {
           "type": "string",
           "default": "",
-          "description": "WordPress username"
+          "description": "[DEPRECATED] WordPress username. Use liveBlogWriter.blogs instead.",
+          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
         },
         "liveBlogWriter.blogger.blogId": {
           "type": "string",
           "default": "",
-          "description": "Blogger Blog ID"
+          "description": "[DEPRECATED] Blogger Blog ID. Use liveBlogWriter.blogs instead.",
+          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile && npm run inject-credentials",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run package:production",
+    "compile": "webpack --mode development",
+    "compile:tsc": "tsc -p ./",
+    "watch": "webpack --mode development --watch",
+    "watch:tsc": "tsc -watch -p ./",
     "inject-credentials": "node scripts/inject-credentials.js",
-    "build": "npm run compile && npm run inject-credentials",
-    "pretest": "npm run compile && npm run lint",
+    "package:production": "webpack --mode production",
+    "package:dev": "npm run compile:tsc",
+    "pretest": "npm run compile:tsc && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "npm run build && vsce package --allow-star-activation",
-    "publish": "npm run build && vsce publish"
+    "package": "npm run package:production && vsce package --allow-star-activation",
+    "publish": "npm run package:production && vsce publish"
   },
   "devDependencies": {
     "@types/node": "^20.x",
@@ -123,10 +194,15 @@
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "@vscode/test-electron": "^2.3.8",
+    "dotenv": "^17.2.3",
     "eslint": "^8.54.0",
-    "typescript": "^5.3.0"
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.3.0",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "axios": "^1.12.2"
+    "axios": "^1.12.2",
+    "substack-api": "^1.4.0"
   }
 }

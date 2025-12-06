@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
+out/**
 .gitignore
 .git/**
 .yarnrc
@@ -11,10 +12,10 @@ vsc-extension-quickstart.md
 **/*.ts
 docs/**
 *.vsix
-node_modules/**/.git/**
-node_modules/**/test/**
-node_modules/**/tests/**
-node_modules/**/*.md
+webpack.config.js
+scripts/**
+node_modules/**
+!node_modules/axios/**
 .env
 .env.*
 !.env.example
