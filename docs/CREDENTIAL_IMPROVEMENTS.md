@@ -77,8 +77,8 @@ Blogger OAuth is account-level authentication. One Google account can access mul
 **Proper Draft Workflow:**
 
 1. Create draft via POST `/api/v1/drafts`
-2. If publishing: Call GET `/api/v1/drafts/{id}/prepublish` for validation
-3. Publish via POST `/api/v1/drafts/{id}/publish`
+1. If publishing: Call GET `/api/v1/drafts/{id}/prepublish` for validation
+1. Publish via POST `/api/v1/drafts/{id}/publish`
 
 **HTML to Substack Conversion:**
 
@@ -201,8 +201,8 @@ liveBlogWriter.{platform}.{blogName}.{credentialType}
 Users with existing Substack cookie-based credentials can continue using them. The system will:
 
 1. Check for email/password first
-2. Fall back to cookie if email/password not found
-3. Allow switching between methods via the credential command
+1. Fall back to cookie if email/password not found
+1. Allow switching between methods via the credential command
 
 No migration required for WordPress - the command will prompt for blog selection on next credential update.
 
@@ -214,17 +214,17 @@ No migration required for WordPress - the command will prompt for blog selection
    - Updated `setWordPressPasswordCommand`
    - Updated `setSubstackApiKeyCommand` (renamed functionality)
    - Updated `publishToSubstack()` helper
-2. `src/services/SubstackService.ts`
+1. `src/services/SubstackService.ts`
    - Complete refactor to support dual authentication
    - Added structured content conversion
    - Implemented proper draft workflow
    - Added authentication management methods
-3. `package.json`
+1. `package.json`
    - Updated command title for Substack credentials
-4. `docs/MULTI_BLOG_GUIDE.md`
+1. `docs/MULTI_BLOG_GUIDE.md`
    - Updated Substack section with both auth methods
    - Added setup instructions for each method
-5. `README.md`
+1. `README.md`
    - Updated Substack requirements
 
 ## Future Considerations
@@ -238,18 +238,15 @@ No migration required for WordPress - the command will prompt for blog selection
    - Code blocks
    - Lists (ordered/unordered)
    - Embeds and widgets
-
-2. **Authentication Token Refresh:**
+1. **Authentication Token Refresh:**
    - Automatic token refresh for Substack
    - Detect expired cookies and prompt re-auth
    - Session management improvements
-
-3. **Credential Testing:**
+1. **Credential Testing:**
    - "Test Connection" button in blog configuration
    - Validate credentials before first publish
    - Show authentication status in UI
-
-4. **Credential Migration Tool:**
+1. **Credential Migration Tool:**
    - Automatic migration from legacy single credentials
    - Batch credential setup for multiple blogs
    - Import/export credential configuration (securely)

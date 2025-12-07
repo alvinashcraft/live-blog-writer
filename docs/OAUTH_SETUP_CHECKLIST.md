@@ -5,6 +5,7 @@ Use this checklist to verify your OAuth credential management setup is complete.
 ## ✅ Initial Setup (One-Time)
 
 ### 1. Google Cloud Console Setup
+
 - [ ] Created Google Cloud project
 - [ ] Enabled Blogger API v3
 - [ ] Created OAuth 2.0 Client ID (Desktop application)
@@ -14,12 +15,14 @@ Use this checklist to verify your OAuth credential management setup is complete.
 - [ ] Noted Client ID and Client Secret
 
 ### 2. Azure Key Vault Setup
+
 - [ ] Created Azure Key Vault (or have access to existing one)
 - [ ] Stored Client ID as secret: `BloggerOAuthClientId`
 - [ ] Stored Client Secret as secret: `BloggerOAuthClientSecret`
 - [ ] Verified access with: `az keyvault secret show --vault-name <name> --name BloggerOAuthClientId`
 
 ### 3. Source Code Setup
+
 - [ ] Verified `GoogleOAuthService.ts` has placeholders:
   - `DEFAULT_CLIENT_ID = 'YOUR_CLIENT_ID_HERE'`
   - `DEFAULT_CLIENT_SECRET = 'YOUR_CLIENT_SECRET_HERE'`
@@ -38,6 +41,7 @@ Use this checklist to verify your OAuth credential management setup is complete.
 Choose one method:
 
 ### Method A: PowerShell Script
+
 - [ ] Logged into Azure CLI: `az login`
 - [ ] Run: `.\scripts\get-secrets-from-keyvault.ps1`
 - [ ] Environment variables set (verify with `echo $env:BLOGGER_OAUTH_CLIENT_ID`)
@@ -45,6 +49,7 @@ Choose one method:
 - [ ] Verify injection: `cat out/services/GoogleOAuthService.js | Select-String "DEFAULT_CLIENT_ID"`
 
 ### Method B: .env File
+
 - [ ] Created `.env` file (gitignored)
 - [ ] Populated with credentials from Key Vault or JSON file
 - [ ] Loaded into environment (see OAUTH_SETUP_QUICK_REFERENCE.md)
@@ -58,10 +63,12 @@ Choose one method:
 - [ ] Added GitHub secret: `AZURE_CREDENTIALS` (full JSON output)
 - [ ] Added GitHub secret: `AZURE_KEYVAULT_NAME`
 - [ ] Granted Key Vault access to service principal:
+
   ```bash
   az keyvault set-policy --name <vault> \
     --spn <sp-id> --secret-permissions get list
   ```
+
 - [ ] Pushed workflow to GitHub
 - [ ] Verified workflow runs successfully
 - [ ] Downloaded artifact `.vsix` file
@@ -70,6 +77,7 @@ Choose one method:
 ## ✅ Verification Tests
 
 ### Local Build Test
+
 - [ ] Run: `npm run build`
 - [ ] No errors about missing environment variables
 - [ ] Check: `cat out/services/GoogleOAuthService.js | Select-String "YOUR_CLIENT_ID_HERE"`
@@ -78,6 +86,7 @@ Choose one method:
   - Should show your actual client ID (partial)
 
 ### Extension Test
+
 - [ ] Run: `npm run package` (creates `.vsix` file)
 - [ ] Install in VS Code: Extensions → Install from VSIX
 - [ ] Open Command Palette: "Authenticate with Blogger"
@@ -88,6 +97,7 @@ Choose one method:
 - [ ] Publish successfully
 
 ### CI/CD Test (if using GitHub Actions)
+
 - [ ] Push commit to trigger workflow
 - [ ] Workflow completes without errors
 - [ ] Download artifact from workflow run
@@ -113,7 +123,7 @@ Choose one method:
 - [ ] OAuth consent screen configured appropriately
 - [ ] Redirect URI is localhost only (desktop app)
 
-## 🎉 Complete!
+## 🎉 Complete❕
 
 If all checkboxes are checked, your OAuth setup is complete and secure:
 
@@ -127,13 +137,14 @@ If all checkboxes are checked, your OAuth setup is complete and secure:
 ## Next Steps
 
 1. Test the complete workflow end-to-end
-2. Distribute VSIX to users or publish to marketplace
-3. Monitor for any authentication issues
-4. Plan credential rotation strategy (update in Key Vault + rebuild)
+1. Distribute VSIX to users or publish to marketplace
+1. Monitor for any authentication issues
+1. Plan credential rotation strategy (update in Key Vault + rebuild)
 
 ## Troubleshooting
 
 If any step fails, consult:
+
 - [`OAUTH_CREDENTIALS_SETUP.md`](OAUTH_CREDENTIALS_SETUP.md) - Detailed troubleshooting section
 - [`OAUTH_SETUP_QUICK_REFERENCE.md`](OAUTH_SETUP_QUICK_REFERENCE.md) - Common issues and fixes
 - GitHub workflow logs - For CI/CD issues

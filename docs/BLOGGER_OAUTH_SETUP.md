@@ -11,16 +11,16 @@ The extension was previously using API keys for Blogger authentication, which on
    - Now uses `Authorization: Bearer <token>` header instead of API key parameter
    - All API requests (create, update, list) now use OAuth tokens
 
-2. **Updated `extension.ts`**:
+1. **Updated `extension.ts`**:
    - Removed `setBloggerApiKey` command
    - Added `authenticateBlogger` command that uses a custom OAuth 2.0 flow
    - Modified `publishToBlogger` to use custom GoogleOAuthService for authentication
    - Implements OAuth 2.0 with local callback server on port 54321
 
-3. **Updated `package.json`**:
+1. **Updated `package.json`**:
    - Replaced "Set Blogger API Key" command with "Authenticate with Blogger" command
 
-4. **Updated `README.md`**:
+1. **Updated `README.md`**:
    - Removed API key setup instructions
    - Added OAuth authentication instructions
    - Added instructions for finding Blogger Blog ID
@@ -37,7 +37,7 @@ The extension was previously using API keys for Blogger authentication, which on
    - Set **Platform** to "blogger"
    - Set **Blogger Blog ID** to your blog's ID
 
-2. **Authenticate with Google**:
+1. **Authenticate with Google**:
    - Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
    - Run: "Live Blog Writer: Authenticate with Blogger"
    - Your browser will open to Google's sign-in page
@@ -45,18 +45,20 @@ The extension was previously using API keys for Blogger authentication, which on
    - Return to VS Code - authentication tokens are securely stored
 
 **Advanced**: To use custom OAuth credentials instead of the built-in ones:
-   - Run: "Live Blog Writer: Set Custom Blogger Credentials (Advanced)"
-   - Paste your Client ID from Google Cloud Console
-   - Paste your Client Secret
-   - See [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) for creating credentials
+
+- Run: "Live Blog Writer: Set Custom Blogger Credentials (Advanced)"
+- Paste your Client ID from Google Cloud Console
+- Paste your Client Secret
+- See [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) for creating credentials
 
 ### Publishing Posts
 
 1. Create a new post: "Live Blog Writer: New Blog Post"
-2. Write your content
-3. Publish: "Live Blog Writer: Publish Post"
+1. Write your content
+1. Publish: "Live Blog Writer: Publish Post"
 
 The extension will automatically:
+
 - Check for valid OAuth tokens (stored in VS Code's Secret Storage)
 - Request authentication if tokens are expired or missing
 - Use the OAuth access token to publish to Blogger via the Blogger API
@@ -66,6 +68,7 @@ The extension will automatically:
 ### OAuth 2.0 Scope
 
 The extension requests the following Google OAuth scope:
+
 - `https://www.googleapis.com/auth/blogger` - Full access to manage Blogger posts
 
 ### Custom OAuth 2.0 Implementation
@@ -80,11 +83,11 @@ const accessToken = await googleOAuthService.authenticate();
 **How it works:**
 
 1. Opens a local HTTP server on `localhost:54321` to receive the OAuth callback
-2. Opens your browser to Google's authorization page
-3. After you grant permission, Google redirects to the local server with an authorization code
-4. Exchanges the authorization code for access and refresh tokens
-5. Stores tokens securely in VS Code's Secret Storage
-6. Automatically refreshes tokens when they expire
+1. Opens your browser to Google's authorization page
+1. After you grant permission, Google redirects to the local server with an authorization code
+1. Exchanges the authorization code for access and refresh tokens
+1. Stores tokens securely in VS Code's Secret Storage
+1. Automatically refreshes tokens when they expire
 
 This provides several benefits:
 
@@ -97,6 +100,7 @@ This provides several benefits:
 ### API Requests
 
 All Blogger API requests now include the OAuth token in the Authorization header:
+
 ```typescript
 headers: {
     'Content-Type': 'application/json',
@@ -129,8 +133,8 @@ This might occur if:
 VS Code automatically handles token refresh, but if issues persist:
 
 1. Sign out of Google in VS Code: Open Accounts in the bottom-left
-2. Remove the Google account
-3. Run "Live Blog Writer: Authenticate with Blogger" again
+1. Remove the Google account
+1. Run "Live Blog Writer: Authenticate with Blogger" again
 
 ## Why OAuth Instead of API Keys?
 

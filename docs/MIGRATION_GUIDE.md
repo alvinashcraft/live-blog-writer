@@ -5,6 +5,7 @@ This guide helps existing Live Blog Writer users migrate from the single-blog co
 ## What Changed?
 
 ### Old Configuration (Deprecated)
+
 ```json
 {
   "liveBlogWriter.platform": "wordpress",
@@ -15,6 +16,7 @@ This guide helps existing Live Blog Writer users migrate from the single-blog co
 ```
 
 ### New Configuration
+
 ```json
 {
   "liveBlogWriter.blogs": [
@@ -38,9 +40,9 @@ This guide helps existing Live Blog Writer users migrate from the single-blog co
 The easiest way to migrate is using the built-in migration tool:
 
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Run: **"Live Blog Writer: Manage Blog Configurations"**
-3. Select: **"Migrate Legacy Settings"**
-4. Your old settings will be automatically converted
+1. Run: **"Live Blog Writer: Manage Blog Configurations"**
+1. Select: **"Migrate Legacy Settings"**
+1. Your old settings will be automatically converted
 
 The old settings will remain in place for compatibility, but you should use the new `blogs` array going forward.
 
@@ -53,12 +55,11 @@ If you prefer to migrate manually:
 1. Note your current settings:
    - `liveBlogWriter.wordpress.url`
    - `liveBlogWriter.wordpress.username`
-
-2. Open Settings (JSON):
+1. Open Settings (JSON):
    - File → Preferences → Settings
    - Click the `{}` icon (top-right) to open JSON view
+1. Add the new configuration:
 
-3. Add the new configuration:
    ```json
    "liveBlogWriter.blogs": [
      {
@@ -70,13 +71,13 @@ If you prefer to migrate manually:
    ]
    ```
 
-4. Your WordPress password is already stored securely and will work with the new system
+1. Your WordPress password is already stored securely and will work with the new system
 
 ### Blogger Migration
 
 1. Note your current `liveBlogWriter.blogger.blogId`
+1. Add to the blogs array:
 
-2. Add to the blogs array:
    ```json
    "liveBlogWriter.blogs": [
      {
@@ -87,7 +88,7 @@ If you prefer to migrate manually:
    ]
    ```
 
-3. Your Blogger authentication will continue to work
+1. Your Blogger authentication will continue to work
 
 ## Adding More Blogs
 
@@ -125,6 +126,7 @@ Once migrated, you can add more blogs:
 After migration, if you want to add new platforms:
 
 ### Medium
+
 ```bash
 1. Add Medium blog to configuration
 2. Run: "Live Blog Writer: Set Medium Integration Token"
@@ -132,6 +134,7 @@ After migration, if you want to add new platforms:
 ```
 
 ### Ghost
+
 ```bash
 1. Add Ghost blog to configuration
 2. Run: "Live Blog Writer: Set Ghost API Key"
@@ -139,6 +142,7 @@ After migration, if you want to add new platforms:
 ```
 
 ### Substack
+
 ```bash
 1. Add Substack blog to configuration
 2. Run: "Live Blog Writer: Set Substack API Key"
@@ -150,22 +154,25 @@ After migration, if you want to add new platforms:
 After migration:
 
 1. Open a new blog post: **"Live Blog Writer: New Blog Post"**
-2. Check the "Selected Blog" dropdown in the left panel
-3. You should see your migrated blog(s) listed
-4. Select a blog and try publishing a test post
+1. Check the "Selected Blog" dropdown in the left panel
+1. You should see your migrated blog(s) listed
+1. Select a blog and try publishing a test post
 
 ## Troubleshooting
 
 ### Blog dropdown is empty
+
 - Verify your `liveBlogWriter.blogs` array in settings
 - Make sure each blog has required `name` and `platform` fields
 - Reload VS Code window
 
 ### Can't publish to migrated blog
+
 - **WordPress**: Make sure password is still set (may need to re-run "Set WordPress Password")
 - **Blogger**: Re-authenticate if needed ("Authenticate with Blogger")
 
 ### Old settings still showing
+
 - The old settings are deprecated but remain for compatibility
 - The extension will use the new `blogs` array if it exists
 - You can manually remove old settings after successful migration
@@ -182,13 +189,13 @@ After migration:
 
 - Check the [Multi-Blog Guide](MULTI_BLOG_GUIDE.md) for detailed platform setup
 - Review the [Troubleshooting](#troubleshooting) section above
-- Open an issue on GitHub: https://github.com/alvinashcraft/live-blog-writer/issues
+- Open an issue on [GitHub](https://github.com/alvinashcraft/live-blog-writer/issues)
 
 ## Rollback
 
 If you need to rollback to single-blog mode:
 
 1. The old settings still work if `blogs` array is empty
-2. Remove the `blogs` array from settings
-3. Keep using `platform`, `wordpress.url`, etc.
-4. Note: New platforms (Medium, Ghost, Substack) require the new system
+1. Remove the `blogs` array from settings
+1. Keep using `platform`, `wordpress.url`, etc.
+1. Note: New platforms (Medium, Ghost, Substack) require the new system

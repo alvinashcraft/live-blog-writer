@@ -7,8 +7,8 @@ This document explains how to securely manage OAuth credentials for the Live Blo
 Instead of hardcoding credentials in source files, we:
 
 1. Store credentials in Azure Key Vault (or environment variables)
-2. Retrieve them at build time
-3. Inject them into the compiled JavaScript
+1. Retrieve them at build time
+1. Inject them into the compiled JavaScript
 
 This keeps credentials out of your Git repository while still embedding them in the distributed extension.
 
@@ -39,7 +39,7 @@ az keyvault secret set --vault-name "your-keyvault-name" --name "BloggerOAuthCli
 
 For local builds, you have two options:
 
-**Option A: Use the PowerShell script**
+#### Option A: Use the PowerShell script
 
 ```powershell
 # Retrieve secrets from Key Vault and set environment variables
@@ -49,7 +49,9 @@ For local builds, you have two options:
 npm run package
 ```
 
-**Option B: Use a .env file** (not committed to Git)
+#### Option B: Use a .env file
+
+This is not committed to git.
 
 ```bash
 # Copy the example
@@ -116,9 +118,9 @@ npm run package
 ## How It Works
 
 1. **Source Code**: Contains placeholder values (`YOUR_CLIENT_ID_HERE`)
-2. **Build Time**: Script reads environment variables and injects real values into compiled `.js` files
-3. **Distribution**: The packaged `.vsix` file contains real credentials
-4. **Runtime**: Extension uses embedded credentials for all users
+1. **Build Time**: Script reads environment variables and injects real values into compiled `.js` files
+1. **Distribution**: The packaged `.vsix` file contains real credentials
+1. **Runtime**: Extension uses embedded credentials for all users
 
 ## Security Best Practices
 
@@ -142,8 +144,8 @@ cat out/services/GoogleOAuthService.js | grep DEFAULT_CLIENT_ID
 Users of your extension don't need to do anything - the credentials are embedded. They just:
 
 1. Configure their Blogger Blog ID in settings
-2. Run "Authenticate with Blogger" command
-3. Sign in and grant permissions
+1. Run "Authenticate with Blogger" command
+1. Sign in and grant permissions
 
 That's it! Much simpler than requiring each user to create their own OAuth credentials.
 

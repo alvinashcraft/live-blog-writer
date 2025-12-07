@@ -28,9 +28,9 @@ This allows you to:
 ### Adding a Blog
 
 1. Open Command Palette
-2. Run "Live Blog Writer: Manage Blog Configurations"
-3. Select "Add New Blog Configuration"
-4. Follow the prompts:
+1. Run "Live Blog Writer: Manage Blog Configurations"
+1. Select "Add New Blog Configuration"
+1. Follow the prompts:
    - Enter a name for your blog (e.g., "My Personal Blog")
    - Select the platform
    - Enter platform-specific details (see below)
@@ -51,8 +51,8 @@ This allows you to:
    - Go to Users → Profile → Application Passwords
    - Create a new application password
    - Copy the password (you won't be able to see it again)
-2. Add blog configuration and enter the application password when prompted
-3. Alternatively, use "Set WordPress Password" command later
+1. Add blog configuration and enter the application password when prompted
+1. Alternatively, use "Set WordPress Password" command later
 
 ### Blogger
 
@@ -65,8 +65,8 @@ This allows you to:
 1. Get your Blog ID from Blogger:
    - Go to your Blogger dashboard
    - The Blog ID is in the URL: `blogger.com/blog/posts/{BLOG_ID}`
-2. Add blog configuration with the Blog ID
-3. Authenticate with Google using "Authenticate with Blogger" command
+1. Add blog configuration with the Blog ID
+1. Authenticate with Google using "Authenticate with Blogger" command
 
 ### Medium
 
@@ -82,8 +82,8 @@ This allows you to:
    - Scroll to "Integration tokens"
    - Create a new token
    - Copy the token
-2. Add blog configuration
-3. Set the integration token using "Set Medium Integration Token" command
+1. Add blog configuration
+1. Set the integration token using "Set Medium Integration Token" command
 
 **Important Notes:**
 
@@ -104,8 +104,8 @@ This allows you to:
    - Go to Ghost Admin → Settings → Integrations
    - Create a new custom integration
    - Copy the Admin API Key (format: `id:secret`)
-2. Add blog configuration with your site URL
-3. Set the API key using "Set Ghost API Key" command
+1. Add blog configuration with your site URL
+1. Set the API key using "Set Ghost API Key" command
 
 **Important Notes:**
 
@@ -127,9 +127,9 @@ This allows you to:
 #### Option 1: Email & Password Authentication (Recommended)
 
 1. Add blog configuration with your hostname
-2. Run "Set Substack API Key" command
-3. Choose "Email & Password" authentication method
-4. Enter your Substack email and password
+1. Run "Set Substack API Key" command
+1. Choose "Email & Password" authentication method
+1. Enter your Substack email and password
 
 #### Option 2: Cookie-Based Authentication
 
@@ -138,10 +138,10 @@ This allows you to:
    - Open browser Developer Tools (F12)
    - Go to Application → Cookies → <https://substack.com>
    - Find and copy the `connect.sid` cookie value
-2. Add blog configuration with your hostname
-3. Run "Set Substack API Key" command
-4. Choose "Cookie (connect.sid)" authentication method
-5. Enter the cookie value
+1. Add blog configuration with your hostname
+1. Run "Set Substack API Key" command
+1. Choose "Cookie (connect.sid)" authentication method
+1. Enter the cookie value
 
 **Important Notes:**
 
@@ -158,9 +158,9 @@ This allows you to:
 When creating a new post:
 
 1. Open the blog editor with "New Blog Post" command
-2. In the left panel, select your target blog from the "Selected Blog" dropdown
-3. The dropdown shows all configured blogs with their platform type
-4. Write your post and publish
+1. In the left panel, select your target blog from the "Selected Blog" dropdown
+1. The dropdown shows all configured blogs with their platform type
+1. Write your post and publish
 
 ### Publishing
 
@@ -175,9 +175,9 @@ When you click "Publish Post":
 If you were using the extension before multi-blog support:
 
 1. Run "Manage Blog Configurations"
-2. Select "Migrate Legacy Settings"
-3. Your old WordPress/Blogger settings will be converted to the new format
-4. Old settings remain in place for compatibility
+1. Select "Migrate Legacy Settings"
+1. Your old WordPress/Blogger settings will be converted to the new format
+1. Old settings remain in place for compatibility
 
 ## Available Commands
 
@@ -205,10 +205,10 @@ If you were using the extension before multi-blog support:
 ## Tips
 
 1. **Multiple Blogs of Same Platform**: You can add multiple WordPress, Medium, or any platform blogs with different names
-2. **Secure Storage**: All passwords, tokens, and API keys are stored securely in VS Code's secret storage
-3. **Blog Names**: Use descriptive names like "Personal Blog", "Company Blog", "Dev Blog" to easily identify blogs
-4. **Draft Saving**: Drafts are saved locally and work across all platforms
-5. **Tags and Categories**: Different platforms handle these differently:
+1. **Secure Storage**: All passwords, tokens, and API keys are stored securely in VS Code's secret storage
+1. **Blog Names**: Use descriptive names like "Personal Blog", "Company Blog", "Dev Blog" to easily identify blogs
+1. **Draft Saving**: Drafts are saved locally and work across all platforms
+1. **Tags and Categories**: Different platforms handle these differently:
    - WordPress: Supports both tags and categories
    - Blogger: Combines them as labels
    - Medium: Combines them as tags (max 5)
@@ -242,9 +242,9 @@ If you were using the extension before multi-blog support:
 ### Publishing Errors
 
 1. **Check Configuration**: Ensure all required fields are filled
-2. **Verify Credentials**: Make sure passwords/tokens/keys are set correctly
-3. **Test Connection**: Try accessing your blog in a browser
-4. **Check Logs**: Open Developer Tools in VS Code (Help → Toggle Developer Tools) for detailed error messages
+1. **Verify Credentials**: Make sure passwords/tokens/keys are set correctly
+1. **Test Connection**: Try accessing your blog in a browser
+1. **Check Logs**: Open Developer Tools in VS Code (Help → Toggle Developer Tools) for detailed error messages
 
 ## API Limitations
 
@@ -257,10 +257,10 @@ If you were using the extension before multi-blog support:
 ## Security Best Practices
 
 1. Never share your API keys, tokens, or passwords
-2. Use application-specific passwords when available
-3. Regularly rotate your credentials
-4. Store credentials only in VS Code's secure storage
-5. For Blogger custom OAuth, use your own Google Cloud project
+1. Use application-specific passwords when available
+1. Regularly rotate your credentials
+1. Store credentials only in VS Code's secure storage
+1. For Blogger custom OAuth, use your own Google Cloud project
 
 ## Support
 

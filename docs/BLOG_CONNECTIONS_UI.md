@@ -9,8 +9,8 @@ The Blog Connections UI provides a visual, user-friendly interface for managing 
 **Command Palette:**
 
 1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-2. Type: "Live Blog Writer: Manage Blog Connections"
-3. Press Enter
+1. Type: "Live Blog Writer: Manage Blog Connections"
+1. Press Enter
 
 ## Features
 
@@ -24,54 +24,54 @@ The Blog Connections UI provides a visual, user-friendly interface for managing 
 ### Add New Blog
 
 1. Click the **"+ Add Blog"** button
-2. Fill in the form:
+1. Fill in the form:
    - **Blog Name**: A friendly name (e.g., "My Personal Blog")
    - **Platform**: Select from WordPress, Blogger, Medium, Ghost, or Substack
    - **Platform-specific fields**: The form dynamically shows required fields based on platform
    - **Credential**: Optionally set the password/token now, or later
-3. Click **Save**
+1. Click **Save**
 
 ### Edit Existing Blog
 
 1. Click the **"Edit"** button on any blog card
-2. Update any field (name, URL, username, etc.)
-3. Click **Save**
+1. Update any field (name, URL, username, etc.)
+1. Click **Save**
 
 **Note:** Credentials are set separately for security - use the "Set Credential" button
 
 ### Set/Update Credentials
 
 1. Click **"Set Credential"** on any blog card
-2. Enter the appropriate credential:
+1. Enter the appropriate credential:
    - **WordPress**: Application password
    - **Medium**: Integration token
    - **Ghost**: Admin API key (format: `id:secret`)
    - **Substack**: API key or cookie
    - **Blogger**: OAuth (handled automatically)
-3. Click **Save**
+1. Click **Save**
 
 Credentials are stored securely in VS Code's secret storage.
 
 ### Set Default Blog
 
 1. Click **"Set Default"** on any blog card
-2. The blog will be marked as default and automatically selected when publishing
-3. Click **"Unset Default"** to remove default status
+1. The blog will be marked as default and automatically selected when publishing
+1. Click **"Unset Default"** to remove default status
 
 ### Test Connection
 
 1. Click **"Test"** on any blog card
-2. The system will verify:
+1. The system will verify:
    - Credentials are configured
    - Required fields are present
    - Configuration looks valid
-3. Results are shown in a notification
+1. Results are shown in a notification
 
 ### Delete Blog
 
 1. Click **"Delete"** on any blog card
-2. Confirm the deletion
-3. The blog configuration is permanently removed
+1. Confirm the deletion
+1. The blog configuration is permanently removed
 
 ## Platform-Specific Requirements
 
@@ -152,10 +152,10 @@ The UI works seamlessly with:
 ## Tips
 
 1. **Start simple**: Add one blog, test it, then add more
-2. **Use descriptive names**: "Work Blog", "Personal Blog", etc.
-3. **Test after setup**: Use the Test button to verify configuration
-4. **Set a default**: Saves time if you primarily use one blog
-5. **Keep credentials updated**: If passwords change, update them here
+1. **Use descriptive names**: "Work Blog", "Personal Blog", etc.
+1. **Test after setup**: Use the Test button to verify configuration
+1. **Set a default**: Saves time if you primarily use one blog
+1. **Keep credentials updated**: If passwords change, update them here
 
 ## Troubleshooting
 

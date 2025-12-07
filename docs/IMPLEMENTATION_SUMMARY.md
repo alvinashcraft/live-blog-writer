@@ -123,7 +123,7 @@ interface BlogConfig {
 
 Credentials are stored per-blog using the pattern:
 
-```
+```console
 liveBlogWriter.{platform}.{blogName}.{credentialType}
 ```
 

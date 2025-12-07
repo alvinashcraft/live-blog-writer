@@ -781,6 +781,19 @@ export class BlogConnectionsPanel {
     <script>
         const vscode = acquireVsCodeApi();
 
+        // Helper function to escape HTML/special characters in user input
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            // Also escape backticks to prevent template literal injection
+            return text.replace(/[&<>"']/g, m => map[m]).replace(/\`/g, '&#96;');
+        }
+
         const platformFields = {
             wordpress: [
                 { name: 'id', label: 'WordPress URL', placeholder: 'https://myblog.com', required: true, help: 'Your WordPress site URL' },
@@ -935,7 +948,9 @@ export class BlogConnectionsPanel {
         }
 
         function deleteBlog(blogName) {
-            if (confirm(\`Are you sure you want to delete "\${blogName}"?\`)) {
+            // Escape blogName to prevent issues with special characters in confirm dialog
+            const escapedName = escapeHtml(blogName);
+            if (confirm(\`Are you sure you want to delete "\${escapedName}"?\`)) {
                 vscode.postMessage({ command: 'deleteBlog', blogName });
             }
         }
@@ -1002,7 +1017,8 @@ export class BlogConnectionsPanel {
                     break;
                 case 'testResult':
                     const resultType = message.success ? 'success' : 'error';
-                    showNotification(\`\${message.blogName}: \${message.message}\`, resultType);
+                    const escapedBlogName = escapeHtml(message.blogName);
+                    showNotification(\`\${escapedBlogName}: \${message.message}\`, resultType);
                     break;
             }
         });
