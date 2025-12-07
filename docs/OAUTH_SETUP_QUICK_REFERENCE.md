@@ -23,12 +23,15 @@ npm run build
 ### Option 2: Manual .env File
 
 1. Copy `.env.example` to `.env`
-2. Fill in your credentials:
-   ```
+1. Fill in your credentials:
+
+   ```console
    BLOGGER_OAUTH_CLIENT_ID=your-client-id
    BLOGGER_OAUTH_CLIENT_SECRET=your-client-secret
    ```
-3. Load environment variables (PowerShell):
+
+1. Load environment variables (PowerShell):
+
    ```powershell
    Get-Content .env | ForEach-Object {
        if ($_ -match '^([^=]+)=(.*)$') {
@@ -36,7 +39,9 @@ npm run build
        }
    }
    ```
-4. Build:
+
+1. Build:
+
    ```bash
    npm run build
    ```
@@ -48,6 +53,7 @@ npm run build
 See `.github/workflows/build.yml` and `.github/workflows/README.md` for the complete setup.
 
 **Required Secrets:**
+
 - `AZURE_CREDENTIALS` - Service principal JSON
 - `AZURE_KEYVAULT_NAME` - Your Key Vault name
 
@@ -98,7 +104,7 @@ az keyvault set-policy --name your-keyvault-name \
 
 ## Architecture Overview
 
-```
+```console
 Source Code (Git)
     ↓
   [TypeScript with placeholders]
@@ -121,6 +127,7 @@ Source Code (Git)
 ```
 
 **Key Points:**
+
 - Credentials NEVER committed to Git
 - Stored in Azure Key Vault
 - Injected at build time only

@@ -5,6 +5,7 @@ All notable changes to the "live-blog-writer" extension will be documented in th
 ## [0.0.1] - 2025-10-21
 
 ### Added
+
 - Initial release of Live Blog Writer extension
 - WYSIWYG editor powered by TinyMCE with GPL license
 - Support for WordPress publishing via REST API
@@ -27,6 +28,7 @@ All notable changes to the "live-blog-writer" extension will be documented in th
 - **Secure credential storage using VS Code Secret Storage**
 
 ### Features
+
 - Rich text editing with full formatting support
 - Clean, focused writing interface
 - Separate metadata management panel
@@ -34,11 +36,13 @@ All notable changes to the "live-blog-writer" extension will be documented in th
 - **Secure credential handling via VS Code Secret Storage** (passwords/API keys never stored in plain text)
 
 ### Security
+
 - Credentials stored in VS Code's Secret Storage instead of plain text settings
 - WordPress application passwords and Blogger API keys are encrypted
 - No sensitive data exposed in configuration files
 
 ### Known Issues
+
 - WordPress tags and categories use simplified handling (no ID mapping yet)
 - Image uploads must be handled externally (external image links work)
 - No draft management interface (coming in future version)

@@ -1,19 +1,26 @@
 # Live Blog Writer
 
-A VS Code extension for writing and publishing blog posts with a WYSIWYG editor. Supports WordPress and Blogger platforms through their REST APIs.
+A VS Code extension for writing and publishing blog posts with a WYSIWYG editor. Supports WordPress, Blogger, Medium, Ghost, and Substack platforms.
 
 ## Features
 
 - **WYSIWYG Editing**: Rich text editor powered by TinyMCE with full formatting capabilities
-- **Multi-Platform Support**: Publish to both WordPress and Blogger blogs
+- **Multi-Platform Support**: Publish to WordPress, Blogger, Medium, Ghost, and Substack
+- **Multiple Blogs**: Configure and manage multiple blogs across different platforms
+- **Visual Blog Management**: Intuitive webview interface for managing all blog connections
+- **Default Blog**: Set a default blog for quick publishing
+- **Blog Selection**: Choose which blog to publish to directly from the editor
 - **Metadata Management**: Easy-to-use left panel for managing post details:
+  - Blog selection dropdown
   - Post title
   - Post status (Draft, Published, Pending Review, Private)
   - Publish date/time
   - Post excerpt
   - Tags
   - Categories
+- **Draft Management**: Save and manage drafts locally
 - **Auto-save**: Automatically saves your work every 30 seconds
+- **Secure Credentials**: All passwords, tokens, and API keys stored securely
 - **Clean Interface**: Focused writing environment within VS Code
 
 ## Installation
@@ -23,61 +30,97 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 
 ## Configuration
 
-### WordPress Setup
+### Quick Start: Managing Blog Connections
 
-1. Open VS Code Settings (File > Preferences > Settings)
-2. Search for "Live Blog Writer"
-3. Configure the following settings:
-   - **Platform**: Select "wordpress"
-   - **WordPress URL**: Your WordPress site URL (e.g., `https://example.com`)
-   - **WordPress Username**: Your WordPress username
+The easiest way to set up your blogs is using the built-in **Blog Connections** visual interface:
 
-4. **Set WordPress Password Securely**:
-   - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
-   - Type "Live Blog Writer: Set WordPress Password" and press Enter
-   - Enter your WordPress application password when prompted
-   - The password will be stored securely in VS Code's Secret Storage
+1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+2. Run: **"Live Blog Writer: Manage Blog Connections"**
+3. Click **"+ Add Blog"** button
+4. Fill in the form for your platform
+5. Optionally set credentials immediately or later
 
-#### Creating a WordPress Application Password
+The visual interface provides:
 
-1. Log in to your WordPress admin dashboard
-2. Go to Users > Profile
-3. Scroll down to "Application Passwords"
-4. Enter a name (e.g., "VS Code Blog Writer") and click "Add New Application Password"
-5. Copy the generated password and use it with the "Set WordPress Password" command
+- Card-based view of all your blogs
+- Status indicators showing which blogs have credentials configured
+- One-click default blog selection
+- Direct authentication for Blogger OAuth
+- Connection testing
+- Easy credential management
 
-### Blogger Setup
+### Supported Platforms
 
-1. **Configure VS Code Settings**:
-   - Open VS Code Settings (File > Preferences > Settings)
-   - Search for "Live Blog Writer"
-   - Set **Platform** to "blogger"
-   - Set **Blogger Blog ID** (found in your blog's settings or URL)
+#### WordPress
 
-2. **Authenticate with Google**:
-   - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
-   - Run: "Live Blog Writer: Authenticate with Blogger"
-   - Your browser will open to Google's sign-in page
-   - Sign in with your Google account and grant permissions
-   - Return to VS Code - you're ready to publish!
+- **Requirements**: Site URL, username, application password
+- **Command**: "Live Blog Writer: Set WordPress Password"
+- **Note**: Supports self-hosted and WordPress.com blogs
 
-**Note**: The extension uses built-in OAuth credentials. Advanced users who want to use their own Google Cloud project can set custom credentials via "Live Blog Writer: Set Custom Blogger Credentials (Advanced)".
+#### Blogger
 
-#### Finding Your Blogger Blog ID
+- **Requirements**: Blog ID
+- **Command**: "Live Blog Writer: Authenticate with Blogger"
+- **Note**: Requires Google authentication
 
-1. Log in to your Blogger dashboard at [blogger.com](https://www.blogger.com)
-2. Select your blog
-3. Look at the URL - it will contain your Blog ID after `/blog/`
-   - Example: `https://www.blogger.com/blog/posts/1234567890123456789`
-   - The Blog ID is: `1234567890123456789`
-4. Or go to Settings > Basic and find it in the "Blog ID" field
+#### Medium
 
-#### Important Notes for Blogger Authentication
+- **Requirements**: Integration token
+- **Command**: "Live Blog Writer: Set Medium Integration Token"
+- **Setup**: Get token from <https://medium.com/me/settings/security>
 
-- The authentication process temporarily uses port `54321` on localhost
-- Make sure this port is not blocked by your firewall
-- If you get a timeout error, ensure no other application is using this port
-- Authentication credentials are stored securely and automatically refreshed
+#### Ghost
+
+- **Requirements**: Site URL, Admin API key
+- **Command**: "Live Blog Writer: Set Ghost API Key"
+- **Setup**: Generate key from Ghost Admin → Settings → Integrations
+
+#### Substack
+
+- **Requirements**: Hostname, email/password OR connect.sid cookie
+- **Command**: "Live Blog Writer: Set Substack API Key"
+- **Setup**: Use email/password (recommended) or get cookie from browser DevTools while logged into Substack
+
+### Detailed Setup Guides
+
+For detailed platform-specific setup instructions, see:
+
+- [Blog Connections UI Guide](docs/BLOG_CONNECTIONS_UI.md) - Visual interface for managing blogs
+- [Multi-Blog Platform Guide](docs/MULTI_BLOG_GUIDE.md)
+- [Migration Guide](docs/MIGRATION_GUIDE.md) (for existing users)
+
+### Legacy Configuration (Deprecated)
+
+The old single-blog configuration still works but is deprecated. Please migrate to the new multi-blog system:
+
+1. Run: "Live Blog Writer: Manage Blog Configurations"
+2. Select: "Migrate Legacy Settings"
+
+Old settings format:
+
+```json
+{
+  "liveBlogWriter.platform": "wordpress",
+  "liveBlogWriter.wordpress.url": "https://example.com",
+  "liveBlogWriter.wordpress.username": "myusername"
+}
+```
+
+New settings format:
+
+```json
+{
+  "liveBlogWriter.blogs": [
+    {
+      "name": "My Blog",
+      "platform": "wordpress",
+      "id": "https://example.com",
+      "username": "myusername"
+    }
+  ],
+  "liveBlogWriter.defaultBlog": "My Blog"
+}
+```
 
 ## Usage
 
@@ -90,12 +133,13 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 ### Writing Your Post
 
 1. **Left Panel - Post Details**:
-   - Enter your post title in the Title field
-   - Select the post status (Draft, Published, etc.)
-   - Optionally set a publish date/time
-   - Add an excerpt (brief summary)
-   - Add tags by typing and pressing Enter
-   - Add categories by typing and pressing Enter
+   - **Select Blog**: Choose which blog to publish to from the dropdown
+   - **Title**: Enter your post title
+   - **Status**: Select the post status (Draft, Published, etc.)
+   - **Publish Date**: Optionally set a publish date/time
+   - **Excerpt**: Add an excerpt (brief summary)
+   - **Tags**: Add tags by typing and pressing Enter
+   - **Categories**: Add categories by typing and pressing Enter
 
 2. **Main Editor**:
    - Use the TinyMCE editor to write your content
@@ -104,15 +148,18 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 
 ### Publishing Your Post
 
-1. Click the "Save Draft" button to save your work locally
-2. Click the "Publish Post" button to publish to your configured blog platform
-3. Or use the Command Palette: "Live Blog Writer: Publish Post"
+1. **Select your target blog** from the "Selected Blog" dropdown (if not already selected)
+2. Click the **"Save Draft"** button to save your work locally
+3. Click the **"Publish Post"** button to publish to your selected blog
+   - If no blog is selected, you'll be prompted to choose one
+4. Or use the Command Palette: "Live Blog Writer: Publish Post"
 
 ## Features in Detail
 
 ### WYSIWYG Editor
 
 The extension uses TinyMCE, providing:
+
 - Text formatting (bold, italic, underline, etc.)
 - Headings and paragraphs
 - Lists (ordered and unordered)
@@ -124,6 +171,7 @@ The extension uses TinyMCE, providing:
 ### Metadata Panel
 
 The left sidebar provides organized access to all post metadata:
+
 - **Title**: Required field for your post title
 - **Status**: Choose between Draft, Published, Pending Review, or Private
 - **Publish Date**: Schedule posts for future publication
@@ -153,6 +201,7 @@ Your work is automatically saved every 30 seconds, preventing data loss.
 ### "WordPress configuration is incomplete"
 
 Make sure you have set:
+
 - WordPress URL (without trailing slash)
 - WordPress username
 - WordPress password using the "Live Blog Writer: Set WordPress Password" command
@@ -160,6 +209,7 @@ Make sure you have set:
 ### "WordPress password not set"
 
 Run the command:
+
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
 2. Type "Live Blog Writer: Set WordPress Password"
 3. Enter your WordPress application password (not your regular password)
@@ -173,6 +223,7 @@ This means the extension's OAuth credentials are not properly set up. This typic
 ### "Access blocked: authorization error" or "Error 401: invalid_client"
 
 If you're using custom credentials:
+
 - Verify the Blogger API v3 is enabled in your Google Cloud project
 - Check that the redirect URI `http://localhost:54321/callback` is added correctly
 - Ensure you added yourself as a test user in the OAuth consent screen
@@ -241,12 +292,15 @@ See [LICENSE](LICENSE) file for details.
 
 ## Roadmap
 
+- [x] Multiple blog platform support (WordPress, Blogger, Medium, Ghost, Substack)
+- [x] Visual blog connection management interface
+- [x] Default blog selection
+- [x] Draft management (list and edit existing drafts)
 - [ ] Support for featured images
 - [ ] Direct image upload to blog platforms
 - [ ] Support for custom post types
-- [ ] Draft management (list and edit existing drafts)
 - [ ] Post scheduling
-- [ ] Additional blog platform support (Medium, Dev.to, etc.)
+- [ ] Additional blog platform support (Dev.to, Hashnode, etc.)
 - [ ] Markdown support alongside WYSIWYG
 
 ## Support

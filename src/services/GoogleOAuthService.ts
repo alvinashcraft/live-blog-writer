@@ -6,8 +6,8 @@ import axios from 'axios';
 // Default OAuth credentials for the extension
 // These are embedded for ease of use. Advanced users can override via settings.
 // Note: For desktop apps, the client secret cannot be truly "secret" - this is expected by OAuth providers
-const DEFAULT_CLIENT_ID = 'YOUR_CLIENT_ID_HERE';
-const DEFAULT_CLIENT_SECRET = 'YOUR_CLIENT_SECRET_HERE';
+const DEFAULT_CLIENT_ID = typeof INJECTED_CLIENT_ID !== 'undefined' ? INJECTED_CLIENT_ID : 'YOUR_CLIENT_ID_HERE';
+const DEFAULT_CLIENT_SECRET = typeof INJECTED_CLIENT_SECRET !== 'undefined' ? INJECTED_CLIENT_SECRET : 'YOUR_CLIENT_SECRET_HERE';
 
 const OAUTH_REDIRECT_URI = 'http://localhost:54321/callback';
 const OAUTH_SCOPES = ['https://www.googleapis.com/auth/blogger'];
@@ -30,6 +30,16 @@ interface TokenResponse {
 
 export class GoogleOAuthService {
     constructor(private context: vscode.ExtensionContext) {}
+
+    /**
+     * Check if default OAuth credentials are configured (injected at build time)
+     */
+    hasDefaultCredentials(): boolean {
+        return DEFAULT_CLIENT_ID !== 'YOUR_CLIENT_ID_HERE' && 
+               DEFAULT_CLIENT_ID !== '' &&
+               DEFAULT_CLIENT_SECRET !== 'YOUR_CLIENT_SECRET_HERE' &&
+               DEFAULT_CLIENT_SECRET !== '';
+    }
 
     /**
      * Get OAuth Client ID - uses custom if set, otherwise default
@@ -97,10 +107,14 @@ export class GoogleOAuthService {
             return cachedToken;
         }
 
-        // Start OAuth flow
+        // Start OAuth flow with PKCE
+        // Generate PKCE code verifier and challenge
+        const codeVerifier = this.generateCodeVerifier();
+        const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+        
         // Note: Client credentials will be retrieved by the methods that need them
-        const authCode = await this.getAuthorizationCode();
-        const tokenResponse = await this.exchangeCodeForToken(authCode);
+        const authCode = await this.getAuthorizationCode(codeChallenge);
+        const tokenResponse = await this.exchangeCodeForToken(authCode, codeVerifier);
         
         // Store tokens
         await this.storeTokens(tokenResponse);
@@ -187,9 +201,9 @@ export class GoogleOAuthService {
     /**
      * Get authorization code from Google OAuth
      */
-    private async getAuthorizationCode(): Promise<string> {
+    private async getAuthorizationCode(codeChallenge: string): Promise<string> {
         const state = this.generateRandomState();
-        const authUrl = await this.buildAuthUrl(state);
+        const authUrl = await this.buildAuthUrl(state, codeChallenge);
 
         return new Promise((resolve, reject) => {
             let timeoutId: NodeJS.Timeout | null = null;
@@ -274,7 +288,7 @@ export class GoogleOAuthService {
     /**
      * Exchange authorization code for access token
      */
-    private async exchangeCodeForToken(code: string): Promise<TokenResponse> {
+    private async exchangeCodeForToken(code: string, codeVerifier: string): Promise<TokenResponse> {
         const clientId = await this.getClientId();
         const clientSecret = await this.getClientSecret();
 
@@ -288,7 +302,9 @@ export class GoogleOAuthService {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 redirect_uri: OAUTH_REDIRECT_URI,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                grant_type: 'authorization_code'
+                grant_type: 'authorization_code',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                code_verifier: codeVerifier
             });
 
             return response.data;
@@ -322,7 +338,7 @@ export class GoogleOAuthService {
     /**
      * Build Google OAuth authorization URL
      */
-    private async buildAuthUrl(state: string): Promise<string> {
+    private async buildAuthUrl(state: string, codeChallenge: string): Promise<string> {
         const clientId = await this.getClientId();
 
         const params = new URLSearchParams({
@@ -336,7 +352,11 @@ export class GoogleOAuthService {
             state,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'consent',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            code_challenge: codeChallenge,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            code_challenge_method: 'S256'
         });
 
         return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
@@ -348,6 +368,32 @@ export class GoogleOAuthService {
     private generateRandomState(): string {
         // Generate cryptographically secure random state for CSRF protection
         return crypto.randomBytes(32).toString('hex');
+    }
+
+    /**
+     * Generate PKCE code verifier (random string)
+     * Per RFC 7636, must be 43-128 characters from [A-Z][a-z][0-9]-._~
+     */
+    private generateCodeVerifier(): string {
+        // Generate 32 random bytes and encode as base64url (43 characters)
+        return crypto.randomBytes(32)
+            .toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
+    }
+
+    /**
+     * Generate PKCE code challenge from verifier
+     * Uses S256 (SHA-256) method as required by Google
+     */
+    private async generateCodeChallenge(verifier: string): Promise<string> {
+        // SHA-256 hash of the verifier, then base64url encode
+        const hash = crypto.createHash('sha256').update(verifier).digest();
+        return hash.toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
     }
 
     /**

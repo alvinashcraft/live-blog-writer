@@ -1,4 +1,15 @@
 /**
+ * DEPRECATED: This script is no longer used in the primary build process.
+ * 
+ * OAuth credentials are now injected at build time via webpack.DefinePlugin
+ * (see webpack.config.js). The webpack approach is more reliable because it
+ * operates on the AST before minification, whereas this script attempts
+ * string replacement after bundling which can fail with minified code.
+ * 
+ * This script is kept for reference and potential fallback scenarios,
+ * but the primary build process (npm run package:production) uses webpack.
+ * 
+ * Original purpose:
  * Build script to inject OAuth credentials from Azure Key Vault or environment variables
  * This keeps credentials out of source control while making them available at runtime
  */
@@ -6,27 +17,53 @@
 const fs = require('fs');
 const path = require('path');
 
+// Try to load .env file for local development
+try {
+    require('dotenv').config();
+} catch (e) {
+    // dotenv not available or no .env file - that's okay for CI/CD
+}
+
 // Get credentials from environment variables (set by CI/CD or locally)
 const clientId = process.env.BLOGGER_OAUTH_CLIENT_ID;
 const clientSecret = process.env.BLOGGER_OAUTH_CLIENT_SECRET;
 
+// Allow skipping credential injection in local development
+const skipInjection = process.env.SKIP_CREDENTIAL_INJECTION === 'true';
+
 if (!clientId || !clientSecret) {
+    if (skipInjection) {
+        console.log('⚠️  Skipping OAuth credential injection (SKIP_CREDENTIAL_INJECTION=true)');
+        console.log('   The extension will use built-in credentials at runtime');
+        process.exit(0);
+    }
+    
     console.error('ERROR: OAuth credentials not found in environment variables');
     console.error('Please set:');
     console.error('  - BLOGGER_OAUTH_CLIENT_ID');
     console.error('  - BLOGGER_OAUTH_CLIENT_SECRET');
     console.error('');
-    console.error('For local development, create a .env file or set them manually');
+    console.error('Or set SKIP_CREDENTIAL_INJECTION=true to skip injection (for local dev)');
     console.error('For CI/CD, configure them as pipeline secrets');
     process.exit(1);
 }
 
-// Path to the compiled JavaScript file (relative to project root, not scripts/)
-const serviceFilePath = path.join(__dirname, '..', 'out', 'services', 'GoogleOAuthService.js');
+// Path to the bundled JavaScript file for production or compiled file for dev
+const bundledFilePath = path.join(__dirname, '..', 'dist', 'extension.js');
+const compiledFilePath = path.join(__dirname, '..', 'out', 'services', 'GoogleOAuthService.js');
 
-if (!fs.existsSync(serviceFilePath)) {
-    console.error('ERROR: GoogleOAuthService.js not found. Run `npm run compile` first.');
-    console.error(`Looking for: ${serviceFilePath}`);
+// Prefer bundled file if it exists (production), otherwise use compiled (dev/test)
+let serviceFilePath;
+if (fs.existsSync(bundledFilePath)) {
+    serviceFilePath = bundledFilePath;
+    console.log('Injecting credentials into bundled file...');
+} else if (fs.existsSync(compiledFilePath)) {
+    serviceFilePath = compiledFilePath;
+    console.log('Injecting credentials into compiled file...');
+} else {
+    console.error('ERROR: No compiled or bundled output found.');
+    console.error('Run `npm run compile` or `webpack --mode production` first.');
+    console.error(`Looking for: ${bundledFilePath} or ${compiledFilePath}`);
     process.exit(1);
 }
 
