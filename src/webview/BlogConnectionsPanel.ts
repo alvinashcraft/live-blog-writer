@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 interface BlogConfig {
     name: string;
-    platform: 'wordpress' | 'blogger' | 'medium' | 'ghost' | 'substack';
+    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack';
     id?: string;
     username?: string;
 }
@@ -282,8 +282,7 @@ export class BlogConnectionsPanel {
     }
 
     private async storeCredential(blogName: string, platform: string, credential: string) {
-        const credType = platform === 'wordpress' ? 'password' : 
-                        platform === 'medium' ? 'token' : 'apikey';
+        const credType = platform === 'wordpress' ? 'password' : 'apikey';
         const secretKey = this.getSecretKey(platform, blogName, credType);
         await this._context.secrets.store(secretKey, credential);
     }
@@ -299,8 +298,7 @@ export class BlogConnectionsPanel {
             }
         }
         
-        const credType = platform === 'wordpress' ? 'password' : 
-                        platform === 'medium' ? 'token' : 'apikey';
+        const credType = platform === 'wordpress' ? 'password' : 'apikey';
         const secretKey = this.getSecretKey(platform, blogName, credType);
         const credential = await this._context.secrets.get(secretKey);
         return !!credential;
@@ -317,8 +315,7 @@ export class BlogConnectionsPanel {
         }
 
         // Get the credential type for this platform
-        const credType = platform === 'wordpress' ? 'password' : 
-                        platform === 'medium' ? 'token' : 'apikey';
+        const credType = platform === 'wordpress' ? 'password' : 'apikey';
         
         // For Substack, also migrate email and password if they exist
         if (platform === 'substack') {
@@ -730,7 +727,6 @@ export class BlogConnectionsPanel {
                         <option value="">Select platform...</option>
                         <option value="wordpress">WordPress</option>
                         <option value="blogger">Blogger</option>
-                        <option value="medium">Medium</option>
                         <option value="ghost">Ghost</option>
                         <option value="substack">Substack</option>
                     </select>
@@ -802,9 +798,6 @@ export class BlogConnectionsPanel {
             blogger: [
                 { name: 'id', label: 'Blog ID', placeholder: '1234567890', required: true, help: 'Your Blogger Blog ID' }
             ],
-            medium: [
-                { name: 'username', label: 'Username', placeholder: '@username', required: false, help: 'Your Medium username (optional)' }
-            ],
             ghost: [
                 { name: 'id', label: 'Site URL', placeholder: 'https://myblog.com', required: true, help: 'Your Ghost site URL' }
             ],
@@ -817,7 +810,6 @@ export class BlogConnectionsPanel {
         const credentialLabels = {
             wordpress: { label: 'Application Password', help: 'WordPress application password' },
             blogger: { label: 'OAuth (handled automatically)', help: 'OAuth authentication is managed automatically' },
-            medium: { label: 'Integration Token', help: 'Get from Medium settings → Integration tokens' },
             ghost: { label: 'Admin API Key', help: 'Format: id:secret from Ghost Admin → Integrations' },
             substack: { label: 'API Key or Cookie', help: 'Substack API credentials' }
         };
@@ -988,7 +980,7 @@ export class BlogConnectionsPanel {
                 command: 'setCredential', 
                 blogName, 
                 platform, 
-                credentialType: platform === 'wordpress' ? 'password' : platform === 'medium' ? 'token' : 'apikey',
+                credentialType: platform === 'wordpress' ? 'password' : 'apikey',
                 credential 
             });
 

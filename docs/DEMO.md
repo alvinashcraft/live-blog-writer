@@ -4,9 +4,9 @@ This document shows what the Live Blog Writer extension looks like and how it wo
 
 ## Opening the Blog Editor
 
-1. Open Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
-2. Type: "Live Blog Writer: New Blog Post"
-3. Press Enter
+1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+1. Type: "Live Blog Writer: New Blog Post"
+1. Press Enter
 
 ## The Blog Editor Interface
 

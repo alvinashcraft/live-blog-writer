@@ -19,8 +19,8 @@ The Live Blog Writer extension needs an icon for the VS Code marketplace.
 ## Icon Elements
 
 1. **Main element**: A stylized pen/pencil (representing writing)
-2. **Secondary element**: Waves or radio signals (representing "live" and "blog/publish")
-3. **Background**: Solid color or subtle gradient
+1. **Secondary element**: Waves or radio signals (representing "live" and "blog/publish")
+1. **Background**: Solid color or subtle gradient
 
 ## Example ASCII Representation
 

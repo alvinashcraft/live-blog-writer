@@ -6,7 +6,6 @@ The Live Blog Writer extension now supports multiple blog platforms and allows y
 
 - **WordPress** - Self-hosted or WordPress.com blogs
 - **Blogger** - Google's blogging platform
-- **Medium** - Publishing platform
 - **Ghost** - Open-source publishing platform
 - **Substack** - Newsletter and blogging platform
 
@@ -68,29 +67,6 @@ This allows you to:
 1. Add blog configuration with the Blog ID
 1. Authenticate with Google using "Authenticate with Blogger" command
 
-### Medium
-
-**Required Information:**
-
-- Integration Token
-- Username (optional)
-
-**Setup Steps:**
-
-1. Generate an Integration Token:
-   - Go to <https://medium.com/me/settings/security>
-   - Scroll to "Integration tokens"
-   - Create a new token
-   - Copy the token
-1. Add blog configuration
-1. Set the integration token using "Set Medium Integration Token" command
-
-**Important Notes:**
-
-- Medium API allows up to 5 tags per post
-- `publishStatus` options: `draft`, `public`, or `unlisted`
-- Posts are published in HTML format
-
 ### Ghost
 
 **Required Information:**
@@ -116,37 +92,40 @@ This allows you to:
 
 **Required Information:**
 
-- Hostname (e.g., `yoursite.substack.com`)
+- Hostname without `https://` prefix (e.g., `yoursite.substack.com`)
 - Authentication credentials (choose one method):
-  - **Email & Password** (Recommended - more stable)
-  - **Connect SID cookie** (Alternative)
+  - **Connect SID cookie** (Recommended - most reliable)
+  - **Email & Password** (Alternative - may not work due to API restrictions)
 - Username (optional)
 
 **Setup Steps:**
 
-#### Option 1: Email & Password Authentication (Recommended)
+#### Option 1: Cookie-Based Authentication (Recommended)
+
+1. Get your Connect SID cookie:
+   - Log in to your Substack account in your browser
+   - Open browser Developer Tools (F12)
+   - Go to Application (Chrome/Edge) or Storage (Firefox) → Cookies → <https://substack.com>
+   - Find the `connect.sid` cookie
+   - Copy the cookie value (leave "URL encoded" unchecked)
+1. Add blog configuration with your hostname (without `https://`)
+1. Run "Set Substack API Key" command
+1. Choose "Cookie (connect.sid)" authentication method
+1. Paste the cookie value
+
+#### Option 2: Email & Password Authentication (Alternative)
 
 1. Add blog configuration with your hostname
 1. Run "Set Substack API Key" command
 1. Choose "Email & Password" authentication method
 1. Enter your Substack email and password
-
-#### Option 2: Cookie-Based Authentication
-
-1. Get your Connect SID cookie:
-   - Log in to your Substack account
-   - Open browser Developer Tools (F12)
-   - Go to Application → Cookies → <https://substack.com>
-   - Find and copy the `connect.sid` cookie value
-1. Add blog configuration with your hostname
-1. Run "Set Substack API Key" command
-1. Choose "Cookie (connect.sid)" authentication method
-1. Enter the cookie value
+1. **Note**: This method may fail with 401 errors due to Substack API restrictions. Use cookie authentication if you encounter issues.
 
 **Important Notes:**
 
-- Email/password authentication is more reliable and doesn't expire as frequently
-- Cookie-based authentication may require periodic refresh when the cookie expires
+- Cookie-based authentication is more reliable and works consistently
+- Email/password authentication may be blocked by Substack's API security measures
+- Cookie authentication may require periodic refresh when the cookie expires (typically every few weeks)
 - Content is converted to Substack's structured ProseMirror document format
 - Posts can be saved as drafts or published immediately
 - Uses Substack's draft → prepublish → publish workflow for published posts
@@ -193,7 +172,6 @@ If you were using the extension before multi-blog support:
 
 - **Manage Blog Configurations** - Add, edit, or remove blog configurations
 - **Set WordPress Password** - Set password for a WordPress blog
-- **Set Medium Integration Token** - Set token for a Medium blog
 - **Set Ghost API Key** - Set API key for a Ghost blog
 - **Set Substack API Key** - Set cookie for a Substack blog
 
@@ -204,14 +182,13 @@ If you were using the extension before multi-blog support:
 
 ## Tips
 
-1. **Multiple Blogs of Same Platform**: You can add multiple WordPress, Medium, or any platform blogs with different names
+1. **Multiple Blogs of Same Platform**: You can add multiple WordPress, Ghost, or any platform blogs with different names
 1. **Secure Storage**: All passwords, tokens, and API keys are stored securely in VS Code's secret storage
 1. **Blog Names**: Use descriptive names like "Personal Blog", "Company Blog", "Dev Blog" to easily identify blogs
 1. **Draft Saving**: Drafts are saved locally and work across all platforms
 1. **Tags and Categories**: Different platforms handle these differently:
    - WordPress: Supports both tags and categories
    - Blogger: Combines them as labels
-   - Medium: Combines them as tags (max 5)
    - Ghost: Combines them as tags
    - Substack: Uses subtitle field for excerpts
 
@@ -223,11 +200,6 @@ If you were using the extension before multi-blog support:
 
 - Run "Authenticate with Blogger" command
 - Make sure you're signed in to the correct Google account
-
-**Medium:**
-
-- Verify your integration token is still valid
-- Check token permissions at <https://medium.com/me/settings/security>
 
 **Ghost:**
 
@@ -248,7 +220,6 @@ If you were using the extension before multi-blog support:
 
 ## API Limitations
 
-- **Medium**: Rate limits apply, maximum 5 tags per post
 - **Substack**: Cookie-based authentication may require periodic renewal
 - **Ghost**: Requires Admin API key, not Content API key
 - **Blogger**: Requires Google OAuth authentication

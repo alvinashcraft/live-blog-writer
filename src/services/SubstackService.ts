@@ -108,6 +108,15 @@ export class SubstackService {
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
+                const statusCode = error.response?.status;
+                if (statusCode === 401 || statusCode === 403) {
+                    throw new Error(
+                        `Failed to login to Substack: Authentication failed. ` +
+                        `Email/password authentication may not be supported by Substack's API. ` +
+                        `Please use cookie-based authentication instead. ` +
+                        `Get your connect.sid cookie from your browser after logging into Substack.`
+                    );
+                }
                 throw new Error(`Failed to login to Substack: ${error.response?.data?.message || error.message}`);
             }
             throw new Error(`Failed to login to Substack: ${error instanceof Error ? error.message : 'Unknown error'}`);

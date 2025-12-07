@@ -2,27 +2,20 @@
 
 ## Overview
 
-Successfully implemented support for three additional blog platforms (Medium, Ghost, Substack) and added multi-blog configuration capabilities to the Live Blog Writer VS Code extension.
+Successfully implemented support for additional blog platforms (Ghost, Substack) and added multi-blog configuration capabilities to the Live Blog Writer VS Code extension.
 
 ## Files Created
 
 ### Service Classes
 
-1. **`src/services/MediumService.ts`**
-   - Medium API integration using Bearer token authentication
-   - Post creation with HTML/Markdown support
-   - User ID fetching and caching
-   - Tag management (max 5 tags)
-   - Publish status: draft, public, unlisted
-
-2. **`src/services/GhostService.ts`**
+1. **`src/services/GhostService.ts`**
    - Ghost Admin API integration
    - JWT token generation for authentication
    - HTML to Mobiledoc conversion
    - Status support: draft, published, scheduled
    - Tag and excerpt management
 
-3. **`src/services/SubstackService.ts`**
+1. **`src/services/SubstackService.ts`**
    - Substack API integration using cookie-based authentication
    - Post creation with HTML content
    - Draft and published status support
@@ -37,13 +30,13 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
    - Troubleshooting section
    - Security best practices
 
-2. **`docs/MIGRATION_GUIDE.md`**
+1. **`docs/MIGRATION_GUIDE.md`**
    - Step-by-step migration instructions
    - Automatic vs manual migration
    - Configuration examples
    - Verification steps
 
-3. **`docs/CHANGELOG_v0.1.0.md`**
+1. **`docs/CHANGELOG_v0.1.0.md`**
    - Detailed changelog for version 0.1.0
    - Breaking changes (none)
    - New features and improvements
@@ -59,7 +52,6 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
    - Added `getSecretKey()` helper function
    - New commands:
      - `manageBlogConfigurations` - Central management UI
-     - `setMediumToken` - Medium credential management
      - `setGhostApiKey` - Ghost credential management
      - `setSubstackApiKey` - Substack credential management
    - Helper functions:
@@ -70,12 +62,11 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
    - New publish functions:
      - `publishToWordPressNew()` - Updated for BlogConfig
      - `publishToBloggerNew()` - Updated for BlogConfig
-     - `publishToMedium()` - New Medium publisher
      - `publishToGhost()` - New Ghost publisher
      - `publishToSubstack()` - New Substack publisher
    - Updated `publishPost` command to support blog selection
 
-2. **`src/webview/BlogEditorPanel.ts`**
+1. **`src/webview/BlogEditorPanel.ts`**
    - Added `selectedBlog` field to `_postData` interface
    - Updated message handling for blog selection
    - Added blog selection dropdown HTML
@@ -84,12 +75,11 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
    - Blog configs injection via `blogConfigsScript`
    - Updated draft loading to restore selected blog
 
-3. **`package.json`**
+1. **`package.json`**
    - Updated description to include new platforms
-   - Added keywords: medium, ghost, substack
+   - Added keywords: ghost, substack
    - New commands in contribution points:
      - `manageBlogConfigurations`
-     - `setMediumToken`
      - `setGhostApiKey`
      - `setSubstackApiKey`
    - New configuration schema:
@@ -97,7 +87,7 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
      - Deprecated old single-blog settings
    - Added `substack-api` dependency
 
-4. **`README.md`**
+1. **`README.md`**
    - Updated feature list with multi-platform support
    - Added blog selection to feature list
    - Simplified configuration section
@@ -113,7 +103,7 @@ Successfully implemented support for three additional blog platforms (Medium, Gh
 ```typescript
 interface BlogConfig {
   name: string;              // Display name (e.g., "Personal Blog")
-  platform: 'wordpress' | 'blogger' | 'medium' | 'ghost' | 'substack';
+  platform: 'wordpress' | 'blogger' | 'ghost' | 'substack';
   id?: string;               // URL or Blog ID
   username?: string;         // Username where applicable
 }
@@ -130,18 +120,9 @@ liveBlogWriter.{platform}.{blogName}.{credentialType}
 Examples:
 
 - `liveBlogWriter.wordpress.Personal Blog.password`
-- `liveBlogWriter.medium.Dev Blog.token`
 - `liveBlogWriter.ghost.Company Blog.apikey`
 
 ## Platform Implementation Details
-
-### Medium
-
-- **API**: REST API with Bearer token authentication
-- **Endpoint**: `https://api.medium.com/v1`
-- **Content Format**: HTML or Markdown
-- **Authentication**: Integration token from user settings
-- **Key Features**: User ID fetching, tag management (max 5)
 
 ### Ghost
 
@@ -190,14 +171,11 @@ Examples:
    - Per-blog credential isolation
    - No credentials in settings.json or workspace files
    - Secure token transmission to services
-
-2. **API Key Formats**
+1. **API Key Formats**
    - WordPress: Application passwords (not regular passwords)
-   - Medium: Integration tokens (not account passwords)
    - Ghost: Admin API keys with proper format validation
    - Substack: Session cookies (auto-expire)
-
-3. **Best Practices Documented**
+1. **Best Practices Documented**
    - Regular credential rotation
    - Application-specific passwords
    - Token permission management
@@ -230,20 +208,19 @@ Examples:
 ## Known Limitations
 
 1. **Substack**: Cookie-based authentication may require periodic renewal
-2. **Medium**: Maximum 5 tags per post (API limitation)
-3. **Ghost**: HTML content converted to basic Mobiledoc structure
-4. **All Platforms**: No image upload support (use external URLs)
+1. **Ghost**: HTML content converted to basic Mobiledoc structure
+1. **All Platforms**: No image upload support (use external URLs)
 
 ## Future Enhancement Opportunities
 
 1. **Cross-Posting**: Publish same content to multiple blogs simultaneously
-2. **Image Upload**: Direct image upload to platforms that support it
-3. **Draft Sync**: Sync drafts with remote platform drafts
-4. **Preview**: Platform-specific preview before publishing
-5. **Analytics**: View post statistics within VS Code
-6. **Scheduling**: Better scheduling support across platforms
-7. **Categories**: Better category management for WordPress
-8. **Custom Fields**: Support platform-specific custom fields
+1. **Image Upload**: Direct image upload to platforms that support it
+1. **Draft Sync**: Sync drafts with remote platform drafts
+1. **Preview**: Platform-specific preview before publishing
+1. **Analytics**: View post statistics within VS Code
+1. **Scheduling**: Better scheduling support across platforms
+1. **Categories**: Better category management for WordPress
+1. **Custom Fields**: Support platform-specific custom fields
 
 ## Dependencies Added
 

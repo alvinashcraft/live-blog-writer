@@ -7,8 +7,8 @@ This document provides a quick reference for setting up OAuth credentials for th
 **You don't need to do anything!** The extension includes built-in OAuth credentials. Just:
 
 1. Configure your Blogger Blog ID in settings
-2. Run "Authenticate with Blogger" command
-3. Sign in and grant permissions
+1. Run "Authenticate with Blogger" command
+1. Sign in and grant permissions
 
 ## For Developers - Local Development
 

@@ -112,11 +112,6 @@ Once migrated, you can add more blogs:
     "name": "My Blogger",
     "platform": "blogger",
     "id": "123456789"
-  },
-  {
-    "name": "Dev Blog (Medium)",
-    "platform": "medium",
-    "username": "@myhandle"
   }
 ]
 ```
@@ -125,28 +120,20 @@ Once migrated, you can add more blogs:
 
 After migration, if you want to add new platforms:
 
-### Medium
-
-```bash
-1. Add Medium blog to configuration
-2. Run: "Live Blog Writer: Set Medium Integration Token"
-3. Enter your Medium integration token
-```
-
 ### Ghost
 
 ```bash
 1. Add Ghost blog to configuration
-2. Run: "Live Blog Writer: Set Ghost API Key"
-3. Enter your Ghost Admin API key
+1. Run: "Live Blog Writer: Set Ghost API Key"
+1. Enter your Ghost Admin API key
 ```
 
 ### Substack
 
 ```bash
 1. Add Substack blog to configuration
-2. Run: "Live Blog Writer: Set Substack API Key"
-3. Enter your Substack connect.sid cookie
+1. Run: "Live Blog Writer: Set Substack API Key"
+1. Enter your Substack connect.sid cookie
 ```
 
 ## Verifying Migration
@@ -180,7 +167,7 @@ After migration:
 ## Benefits of New System
 
 ✅ **Multiple Blogs**: Add as many blogs as you want
-✅ **Multiple Platforms**: Mix WordPress, Blogger, Medium, Ghost, and Substack
+✅ **Multiple Platforms**: Mix WordPress, Blogger, Ghost, and Substack
 ✅ **Better Organization**: Name your blogs descriptively
 ✅ **Easier Management**: GUI for adding/editing/removing blogs
 ✅ **More Secure**: Individual credential storage per blog
@@ -198,4 +185,4 @@ If you need to rollback to single-blog mode:
 1. The old settings still work if `blogs` array is empty
 1. Remove the `blogs` array from settings
 1. Keep using `platform`, `wordpress.url`, etc.
-1. Note: New platforms (Medium, Ghost, Substack) require the new system
+1. Note: New platforms (Ghost, Substack) require the new system

@@ -1,9 +1,9 @@
 {
   "name": "live-blog-writer",
   "displayName": "Live Blog Writer",
-  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress, Blogger, Medium, Ghost, and Substack blogs",
+  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress, Blogger, Ghost, and Substack blogs",
   "icon": "images/writerIcon.png",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -20,7 +20,6 @@
     "blogging",
     "wordpress",
     "blogger",
-    "medium",
     "ghost",
     "substack",
     "wysiwyg",
@@ -82,10 +81,6 @@
         "title": "Live Blog Writer: Manage Blog Connections"
       },
       {
-        "command": "live-blog-writer.setMediumToken",
-        "title": "Live Blog Writer: Set Medium Integration Token"
-      },
-      {
         "command": "live-blog-writer.setGhostApiKey",
         "title": "Live Blog Writer: Set Ghost API Key"
       },
@@ -103,7 +98,6 @@
           "enum": [
             "wordpress",
             "blogger",
-            "medium",
             "ghost",
             "substack"
           ],
@@ -126,7 +120,6 @@
                 "enum": [
                   "wordpress",
                   "blogger",
-                  "medium",
                   "ghost",
                   "substack"
                 ],
@@ -134,11 +127,11 @@
               },
               "id": {
                 "type": "string",
-                "description": "Blog ID (for Blogger), URL (for WordPress/Ghost), or hostname (for Substack). Optional for Medium."
+                "description": "Blog ID (for Blogger), URL (for WordPress/Ghost), or hostname (for Substack)."
               },
               "username": {
                 "type": "string",
-                "description": "Username (for WordPress, Substack, Medium). Optional for others."
+                "description": "Username (for WordPress, Substack). Optional for others."
               }
             },
             "required": [
