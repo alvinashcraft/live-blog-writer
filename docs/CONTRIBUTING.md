@@ -56,7 +56,6 @@ live-blog-writer/
 │   ├── services/
 │   │   ├── WordPressService.ts         # WordPress REST API client
 │   │   ├── BloggerService.ts           # Blogger API v3 client
-│   │   ├── MediumService.ts            # Medium API client
 │   │   ├── GhostService.ts             # Ghost Admin API client
 │   │   ├── SubstackService.ts          # Substack API client
 │   │   ├── GoogleOAuthService.ts       # OAuth 2.0 with PKCE for Blogger
@@ -135,7 +134,7 @@ npm run lint -- --fix
 Before submitting a PR:
 
 1. **Manual Testing**: Test the extension in the Extension Development Host
-1. **Test Multiple Platforms**: If possible, test with WordPress, Blogger, and at least one other platform (Medium, Ghost, or Substack)
+1. **Test Multiple Platforms**: If possible, test with WordPress, Blogger, and at least one other platform (Ghost or Substack)
 1. **Test Blog Management**: Test adding, editing, deleting blog configurations via the visual UI
 1. **Test Edge Cases**: Empty fields, special characters, long content, multiple blogs of same platform, etc.
 
@@ -162,9 +161,6 @@ Examples:
 - Improved HTML-to-Mobiledoc conversion for Ghost
 - Enhanced HTML-to-ProseMirror conversion for Substack
 - Cross-posting (publish same content to multiple blogs simultaneously)
-
-### Medium Priority
-
 - Support for featured/cover images
 - Custom post types (WordPress)
 - Post scheduling improvements
@@ -230,13 +226,6 @@ We welcome feature suggestions! Please:
 - Handle OAuth tokens securely via GoogleOAuthService
 - Include proper error messages
 - Follow Google API guidelines
-
-### Medium Service
-
-- Use Medium REST API v1
-- Authenticate with Bearer token (integration token)
-- Maximum 5 tags per post (API limitation)
-- Support both HTML and Markdown content formats
 
 ### Ghost Service
 

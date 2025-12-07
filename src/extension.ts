@@ -3,7 +3,6 @@ import { BlogEditorPanel } from './webview/BlogEditorPanel';
 import { BlogConnectionsPanel } from './webview/BlogConnectionsPanel';
 import { WordPressService } from './services/WordPressService';
 import { BloggerService } from './services/BloggerService';
-import { MediumService } from './services/MediumService';
 import { GhostService } from './services/GhostService';
 import { SubstackService } from './services/SubstackService';
 import { DraftManager } from './services/DraftManager';
@@ -33,7 +32,7 @@ interface BloggerPublishOptions {
 
 interface BlogConfig {
     name: string;
-    platform: 'wordpress' | 'blogger' | 'medium' | 'ghost' | 'substack';
+    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack';
     id?: string;
     username?: string;
 }
@@ -257,9 +256,6 @@ export function activate(context: vscode.ExtensionContext) {
                 case 'blogger':
                     await publishToBloggerNew(postData, selectedBlog, context);
                     break;
-                case 'medium':
-                    await publishToMedium(postData, selectedBlog, context);
-                    break;
                 case 'ghost':
                     await publishToGhost(postData, selectedBlog, context);
                     break;
@@ -401,40 +397,6 @@ export function activate(context: vscode.ExtensionContext) {
         BlogConnectionsPanel.createOrShow(context.extensionUri, context, googleOAuthService);
     });
 
-    // Register command to set Medium integration token
-    let setMediumTokenCommand = vscode.commands.registerCommand('live-blog-writer.setMediumToken', async () => {
-        const config = vscode.workspace.getConfiguration('liveBlogWriter');
-        const blogs = config.get<BlogConfig[]>('blogs', []);
-        const mediumBlogs = blogs.filter(b => b.platform === 'medium');
-
-        if (mediumBlogs.length === 0) {
-            vscode.window.showErrorMessage('No Medium blog configurations found. Please add a Medium blog first.');
-            return;
-        }
-
-        const blogNames = mediumBlogs.map(b => b.name);
-        const selectedBlog = await vscode.window.showQuickPick(blogNames, {
-            placeHolder: 'Select Medium blog to set token for'
-        });
-
-        if (!selectedBlog) {
-            return;
-        }
-
-        const token = await vscode.window.showInputBox({
-            prompt: 'Enter your Medium integration token',
-            password: true,
-            ignoreFocusOut: true,
-            placeHolder: 'Integration token from Medium settings'
-        });
-
-        if (token) {
-            const secretKey = getSecretKey('medium', selectedBlog, 'token');
-            await context.secrets.store(secretKey, token);
-            vscode.window.showInformationMessage('Medium integration token saved securely.');
-        }
-    });
-
     // Register command to set Ghost API key
     let setGhostApiKeyCommand = vscode.commands.registerCommand('live-blog-writer.setGhostApiKey', async () => {
         const config = vscode.workspace.getConfiguration('liveBlogWriter');
@@ -491,8 +453,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Ask user which authentication method they prefer
         const authMethod = await vscode.window.showQuickPick([
-            { label: 'Email & Password', value: 'email', description: 'Recommended - More stable authentication' },
-            { label: 'Cookie (connect.sid)', value: 'cookie', description: 'Alternative - Use browser cookie' }
+            { label: 'Cookie (connect.sid)', value: 'cookie', description: 'Recommended - Most reliable method' },
+            { label: 'Email & Password', value: 'email', description: 'Alternative - May not work due to Substack API restrictions' }
         ], {
             placeHolder: 'Select authentication method'
         });
@@ -583,7 +545,6 @@ export function activate(context: vscode.ExtensionContext) {
         manageDraftsCommand,
         saveDraftCommand,
         manageBlogConfigurationsCommand,
-        setMediumTokenCommand,
         setGhostApiKeyCommand,
         setSubstackApiKeyCommand
     );
@@ -616,7 +577,7 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
     }
 
     const platform = await vscode.window.showQuickPick(
-        ['wordpress', 'blogger', 'medium', 'ghost', 'substack'],
+        ['wordpress', 'blogger', 'ghost', 'substack'],
         { placeHolder: 'Select blog platform' }
     );
 
@@ -661,17 +622,6 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
             if (blogId) {
                 blogConfig.id = blogId;
             }
-            break;
-
-        case 'medium':
-            const mediumUsername = await vscode.window.showInputBox({
-                prompt: 'Enter Medium username (optional)',
-                placeHolder: '@username'
-            });
-            if (mediumUsername) {
-                blogConfig.username = mediumUsername;
-            }
-            vscode.window.showInformationMessage('Remember to set your Medium integration token using the "Set Medium Integration Token" command.');
             break;
 
         case 'ghost':
@@ -777,8 +727,7 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
                 password: true
             });
             if (credential) {
-                const credType = blog.platform === 'wordpress' ? 'password' : 
-                              blog.platform === 'medium' ? 'token' : 'apikey';
+                const credType = blog.platform === 'wordpress' ? 'password' : 'apikey';
                 const secretKey = getSecretKey(blog.platform, blog.name, credType);
                 await context.secrets.store(secretKey, credential);
                 vscode.window.showInformationMessage('Credential updated successfully.');
@@ -1079,38 +1028,6 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
     vscode.window.showInformationMessage(`Post ${statusMessage} successfully to ${blogConfig.name}! Post ID: ${result.id}`);
 }
 
-async function publishToMedium(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
-    const secretKey = getSecretKey('medium', blogConfig.name, 'token');
-    const token = await context.secrets.get(secretKey);
-
-    if (!token) {
-        vscode.window.showErrorMessage(`Medium integration token not set for "${blogConfig.name}". Please run "Set Medium Integration Token" command.`);
-        return;
-    }
-
-    const service = new MediumService(token, blogConfig.username);
-
-    // Determine publish status
-    let publishStatus: 'public' | 'draft' | 'unlisted' = 'draft';
-    if (postData.status === 'publish') {
-        publishStatus = 'public';
-    } else if (postData.status === 'private') {
-        publishStatus = 'unlisted';
-    }
-
-    const options = {
-        contentFormat: 'html' as const,
-        publishStatus: publishStatus,
-        tags: [...(postData.tags || []), ...(postData.categories || [])]
-    };
-
-    const result = await service.createPost(postData.title, postData.content, options);
-    
-    vscode.window.showInformationMessage(
-        `Post ${publishStatus === 'draft' ? 'saved as draft' : 'published'} successfully to ${blogConfig.name}!\nURL: ${result.url}`
-    );
-}
-
 async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
     if (!blogConfig.id) {
         vscode.window.showErrorMessage('Ghost site URL is not configured. Please update the blog configuration.');
@@ -1153,6 +1070,16 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
         return;
     }
 
+    // Sanitize hostname - remove protocol and trailing slashes
+    let hostname = blogConfig.id.trim();
+    hostname = hostname.replace(/^https?:\/\//, ''); // Remove http:// or https://
+    hostname = hostname.replace(/\/$/, ''); // Remove trailing slash
+    
+    if (!hostname) {
+        vscode.window.showErrorMessage('Invalid Substack hostname. Please update the blog configuration.');
+        return;
+    }
+
     // Check for email/password authentication first (preferred method)
     const emailKey = getSecretKey('substack', blogConfig.name, 'email');
     const passwordKey = getSecretKey('substack', blogConfig.name, 'password');
@@ -1166,10 +1093,10 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
 
     if (email && password) {
         // Use email/password authentication
-        service = new SubstackService({ email, password }, blogConfig.id);
+        service = new SubstackService({ email, password }, hostname);
     } else if (cookie) {
         // Use cookie authentication
-        service = new SubstackService({ connectSid: cookie }, blogConfig.id);
+        service = new SubstackService({ connectSid: cookie }, hostname);
     } else {
         vscode.window.showErrorMessage(
             `Substack credentials not set for "${blogConfig.name}". Please run "Set Substack API Key" command.`

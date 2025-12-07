@@ -2,6 +2,88 @@
 
 All notable changes to the "live-blog-writer" extension will be documented in this file.
 
+## [1.0.0] - 2025-12-07
+
+### 🎉 Major Release - Production Ready
+
+First stable release with verified publishing support for all four platforms: WordPress, Blogger, Ghost, and Substack.
+
+### ✨ Added
+
+- **Visual Blog Connections Manager**: New webview interface for managing all blog configurations
+  - Card-based UI showing all configured blogs
+  - Status indicators for credential configuration
+  - One-click default blog selection
+  - Direct authentication for Blogger OAuth
+  - Connection testing functionality
+  - Easy credential management per blog
+- **Ghost Platform Support**: Full integration with Ghost blogging platform
+  - Admin API key authentication
+  - Draft and publish support
+  - Tag and metadata support
+- **Substack Platform Support**: Newsletter and blog publishing
+  - Cookie-based authentication (recommended)
+  - Email/password authentication (alternative)
+  - Draft management
+  - Structured content conversion
+- **Multi-Blog Management**: Configure multiple blogs across different platforms
+  - Support for multiple blogs of the same platform type
+  - Blog selection dropdown in editor
+  - Default blog configuration
+  - Per-blog credential storage
+- **Migration Tool**: Seamless migration from legacy single-blog settings
+- **Enhanced Documentation**: Comprehensive guides for all platforms
+  - Platform-specific setup guides
+  - Multi-blog configuration guide
+  - OAuth setup instructions for Blogger
+  - Troubleshooting guides
+
+### 🔧 Changed
+
+- **Substack Authentication**: Cookie-based auth now recommended over email/password
+  - Improved error messages for authentication failures
+  - Added hostname sanitization (removes `https://` prefix)
+  - Better guidance for extracting browser cookies
+- **Blog Configuration**: New multi-blog system replaces legacy single-blog settings
+  - Settings now stored in `liveBlogWriter.blogs` array
+  - Legacy settings still supported with migration path
+- **Markdown Documentation**: All docs now use consistent "1." notation for numbered lists
+  - Added `.markdownlint.json` configuration
+  - Added `.github/copilot-instructions.md` for formatting rules
+
+### ❌ Removed
+
+- **Medium Platform Support**: Removed due to API deprecation
+  - Medium discontinued external publishing API
+  - All Medium-related code, commands, and documentation removed
+  - Migration path provided for existing Medium users
+
+### 🐛 Fixed
+
+- **Substack Hostname Handling**: Fixed `getaddrinfo ENOTFOUND` error
+  - Automatically strips protocol prefixes from hostnames
+  - Validates hostname format before API calls
+- **Substack Authentication**: Improved error handling for 401/403 errors
+  - Clear error messages directing users to cookie-based auth
+  - Better documentation for authentication setup
+- **Package.json**: Removed trailing comma causing lint errors
+
+### 📚 Documentation
+
+- Updated README.md with all four supported platforms
+- Enhanced QUICKSTART.md with detailed setup steps
+- Expanded MULTI_BLOG_GUIDE.md with platform-specific instructions
+- Added BLOG_CONNECTIONS_UI.md for visual interface guide
+- Updated all docs to reflect Medium removal
+- Added Substack troubleshooting section
+
+### ✅ Verified Platform Support
+
+- ✅ WordPress: REST API publishing confirmed working
+- ✅ Blogger: OAuth authentication and publishing confirmed working
+- ✅ Ghost: Admin API integration confirmed working
+- ✅ Substack: Cookie-based authentication and publishing confirmed working
+
 ## [0.0.1] - 2025-10-21
 
 ### Added

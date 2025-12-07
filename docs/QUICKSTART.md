@@ -11,14 +11,14 @@ Get started with Live Blog Writer in minutes!
 
 ## Step 2: Configure Your Blog
 
-The extension supports multiple blogs from WordPress, Blogger, Medium, Ghost, and Substack. Use the visual blog management interface to set up your blogs.
+The extension supports multiple blogs from WordPress, Blogger, Ghost, and Substack. Use the visual blog management interface to set up your blogs.
 
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 1. Type: `Live Blog Writer: Manage Blog Connections`
 1. Click **"Add New Blog"** button
 1. Fill in the form:
    - **Blog Name**: A friendly name (e.g., "My WordPress Blog")
-   - **Platform**: Select from WordPress, Blogger, Medium, Ghost, or Substack
+   - **Platform**: Select from WordPress, Blogger, Ghost, or Substack
    - **Platform-specific fields**: (see below for each platform)
 1. Click **"Set Credential"** to securely store your authentication
 1. Click **"Test Connection"** to verify your setup
@@ -62,11 +62,6 @@ https://www.blogger.com/blog/posts/YOUR_BLOG_ID
 
 See [Google OAuth Setup Guide](GOOGLE_OAUTH_SETUP.md) for detailed OAuth configuration.
 
-#### Medium
-
-- **Username**: Your Medium username (optional, e.g., @username)
-- **Credential**: Integration token (get from Medium settings → Integration tokens)
-
 #### Ghost
 
 - **Site URL**: Your Ghost site URL (e.g., `https://myblog.com`)
@@ -74,9 +69,13 @@ See [Google OAuth Setup Guide](GOOGLE_OAUTH_SETUP.md) for detailed OAuth configu
 
 #### Substack
 
-- **Hostname**: Your Substack hostname (e.g., `myblog.substack.com`)
+- **Hostname**: Your Substack hostname without `https://` (e.g., `myblog.substack.com`)
 - **Username**: Your Substack username (optional)
-- **Credential**: Email and password or API key
+- **Credential**: Connect.sid cookie (recommended) or email/password
+- **Setup**: Run "Live Blog Writer: Set Substack API Key" command
+  1. Choose "Cookie (connect.sid)" method (recommended)
+  1. Get cookie: Open browser DevTools (F12) → Application/Storage → Cookies → substack.com → copy `connect.sid` value
+  1. Paste cookie value when prompted
 
 ## Step 3: Write Your First Post
 
@@ -125,7 +124,7 @@ Done! Your post is live on your blog! 🎉
 - **Multiple Blogs**: You can configure multiple blogs of any platform and switch between them
 - **Draft Management**: Access saved drafts via `Live Blog Writer: Manage Drafts`
 - **Auto-save**: Your work saves automatically every 30 seconds
-- **Tags**: Add as many as you want - just press Enter after each (Medium limits to 5)
+- **Tags**: Add as many as you want - just press Enter after each
 - **Categories**: Available for WordPress and Blogger - type and press Enter
 - **Images**: Use external image URLs in the editor
 - **Formatting**: Explore the toolbar - there are lots of options!

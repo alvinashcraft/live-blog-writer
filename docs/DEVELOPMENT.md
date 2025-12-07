@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Live Blog Writer is a VS Code extension that provides a WYSIWYG editor for creating and publishing blog posts to multiple blog platforms including WordPress, Blogger, Medium, Ghost, and Substack. The extension supports multiple blog configurations of any platform, allowing you to manage and publish to multiple blogs from a single interface.
+Live Blog Writer is a VS Code extension that provides a WYSIWYG editor for creating and publishing blog posts to multiple blog platforms including WordPress, Blogger, Ghost, and Substack. The extension supports multiple blog configurations of any platform, allowing you to manage and publish to multiple blogs from a single interface.
 
 ## Implementation Complete
 
@@ -46,12 +46,6 @@ Live Blog Writer is a VS Code extension that provides a WYSIWYG editor for creat
   - Create posts with labels
   - Support for publish date
   - Combines tags and categories as labels
-- **Medium Integration**
-  - Medium API client
-  - Integration token authentication
-  - Create posts with tags (max 5)
-  - Support for publish status
-  - Markdown/HTML content support
 - **Ghost Integration**
   - Ghost Admin API client
   - JWT (HS256) authentication
@@ -129,7 +123,7 @@ Live Blog Writer is a VS Code extension that provides a WYSIWYG editor for creat
 - ESLint configured and passing
 - Clean separation of concerns:
   - Extension entry point (extension.ts)
-  - Service layer (WordPressService, BloggerService, MediumService, GhostService, SubstackService, GoogleOAuthService, DraftManager)
+  - Service layer (WordPressService, BloggerService, GhostService, SubstackService, GoogleOAuthService, DraftManager)
   - UI layer (BlogEditorPanel, BlogConnectionsPanel)
   - Type declarations (src/types/globals.d.ts)
 - Proper resource cleanup on dispose
@@ -171,7 +165,6 @@ live-blog-writer/
 │   │   ├── DraftManager.ts         # Local draft management
 │   │   ├── GhostService.ts         # Ghost API client
 │   │   ├── GoogleOAuthService.ts   # OAuth 2.0 with PKCE for Blogger
-│   │   ├── MediumService.ts        # Medium API client
 │   │   ├── SubstackService.ts      # Substack API client
 │   │   └── WordPressService.ts     # WordPress REST API client
 │   └── webview/
@@ -218,10 +211,9 @@ live-blog-writer/
 - **Language**: TypeScript 5.3
 - **Build System**: Webpack 5 with DefinePlugin for credential injection
 - **Editor**: TinyMCE 6 (CDN-hosted)
-- **APIs**: 
+- **APIs**:
   - WordPress REST API v2 (application password auth)
   - Blogger API v3 (OAuth 2.0 with PKCE)
-  - Medium API (integration token auth)
   - Ghost Admin API (JWT HS256 auth)
   - Substack API (email/password or cookie auth)
 - **HTTP Client**: Axios 1.12.2
@@ -292,9 +284,6 @@ live-blog-writer/
 - [ ] Blogger publishing
   - [ ] OAuth authentication flow
   - [ ] Publish with labels
-- [ ] Medium publishing
-  - [ ] Integration token setup
-  - [ ] Publish with tags (max 5)
 - [ ] Ghost publishing
   - [ ] Admin API key setup
   - [ ] Publish with Mobiledoc conversion
@@ -328,7 +317,6 @@ live-blog-writer/
 1. **Substack HTML Conversion**: Basic conversion only supports paragraphs and headings (no bold, italic, links, images, lists)
 1. **Single Editor**: Only one post editor can be open at a time
 1. **No Markdown Mode**: Currently only WYSIWYG editing
-1. **Medium Tag Limit**: Maximum 5 tags enforced by Medium API
 1. **Draft Storage**: Local-only; not synced across devices
 
 ## Future Enhancements
@@ -343,9 +331,6 @@ live-blog-writer/
 - Post preview in browser
 - Edit existing published posts
 - Cross-posting to multiple blogs simultaneously
-
-### Medium Priority
-
 - Support for additional platforms (Dev.to, Hashnode, Write.as)
 - Custom post types (WordPress)
 - Multiple post windows/tabs
@@ -469,7 +454,6 @@ vsce publish
 
 1. **WordPress**: Application passwords (not regular passwords)
 1. **Blogger**: OAuth 2.0 with PKCE (no client secret in code)
-1. **Medium**: Integration tokens
 1. **Ghost**: Admin API keys (JWT HS256)
 1. **Substack**: Email/password or session cookies
 
@@ -509,8 +493,6 @@ vsce publish
 
 ✅ Blogger API v3 integration (OAuth 2.0 with PKCE)
 
-✅ Medium API integration (integration token auth)
-
 ✅ Ghost Admin API integration (JWT auth, Mobiledoc format)
 
 ✅ Substack API integration (email/password auth, draft workflow)
@@ -549,7 +531,7 @@ vsce publish
 
 The Live Blog Writer extension has been significantly expanded from a two-platform extension to a comprehensive multi-platform publishing tool. The extension now supports:
 
-- **5 platforms**: WordPress, Blogger, Medium, Ghost, Substack
+- **4 platforms**: WordPress, Blogger, Ghost, Substack
 - **Multi-blog support**: Configure and manage multiple blogs per platform
 - **Secure credentials**: VS Code SecretStorage API with per-blog storage
 - **OAuth 2.0**: PKCE implementation for Blogger authentication

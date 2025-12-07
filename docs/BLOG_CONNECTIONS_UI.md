@@ -26,7 +26,7 @@ The Blog Connections UI provides a visual, user-friendly interface for managing 
 1. Click the **"+ Add Blog"** button
 1. Fill in the form:
    - **Blog Name**: A friendly name (e.g., "My Personal Blog")
-   - **Platform**: Select from WordPress, Blogger, Medium, Ghost, or Substack
+   - **Platform**: Select from WordPress, Blogger, Ghost, or Substack
    - **Platform-specific fields**: The form dynamically shows required fields based on platform
    - **Credential**: Optionally set the password/token now, or later
 1. Click **Save**
@@ -44,7 +44,6 @@ The Blog Connections UI provides a visual, user-friendly interface for managing 
 1. Click **"Set Credential"** on any blog card
 1. Enter the appropriate credential:
    - **WordPress**: Application password
-   - **Medium**: Integration token
    - **Ghost**: Admin API key (format: `id:secret`)
    - **Substack**: API key or cookie
    - **Blogger**: OAuth (handled automatically)
@@ -86,12 +85,6 @@ Credentials are stored securely in VS Code's secret storage.
 - **Required**: Blog ID
 - **Authentication**: OAuth (handled automatically via separate command)
 - **Find Blog ID**: In Blogger settings or URL
-
-### Medium
-
-- **Optional**: Username
-- **Required Credential**: Integration token
-- **Get Token**: Medium Settings → Integration tokens
 
 ### Ghost
 

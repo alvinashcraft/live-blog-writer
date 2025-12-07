@@ -1,11 +1,27 @@
 # Live Blog Writer
 
-A VS Code extension for writing and publishing blog posts with a WYSIWYG editor. Supports WordPress, Blogger, Medium, Ghost, and Substack platforms.
+[![Version](https://img.shields.io/visual-studio-marketplace/v/alvinashcraft.live-blog-writer)](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/alvinashcraft.live-blog-writer)](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/alvinashcraft.live-blog-writer)](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
+
+A VS Code extension for writing and publishing blog posts with a WYSIWYG editor. Supports WordPress, Blogger, Ghost, and Substack platforms.
+
+Full-featured WYSIWYG blog post editor experience:
+
+![Blog Editor](images/screenshots/editor.png)
+
+The blog connections manager screen:
+
+![Blog Connections Manager](images/screenshots/connections.png)
+
+Add a new blog from WordPress, Blogger, Substack, or Ghost:
+
+![Add New Blog](images/screenshots/add-blog.png)
 
 ## Features
 
 - **WYSIWYG Editing**: Rich text editor powered by TinyMCE with full formatting capabilities
-- **Multi-Platform Support**: Publish to WordPress, Blogger, Medium, Ghost, and Substack
+- **Multi-Platform Support**: Publish to WordPress, Blogger, Ghost, and Substack
 - **Multiple Blogs**: Configure and manage multiple blogs across different platforms
 - **Visual Blog Management**: Intuitive webview interface for managing all blog connections
 - **Default Blog**: Set a default blog for quick publishing
@@ -25,8 +41,10 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 
 ## Installation
 
-1. Install the extension from the VS Code marketplace (coming soon)
-2. Configure your blog credentials in VS Code settings
+1. Install the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
+   - Or search for "Live Blog Writer" in VS Code Extensions (Ctrl+Shift+X)
+1. Configure your blog credentials using the visual Blog Connections Manager
+1. Start writing and publishing!
 
 ## Configuration
 
@@ -35,10 +53,10 @@ A VS Code extension for writing and publishing blog posts with a WYSIWYG editor.
 The easiest way to set up your blogs is using the built-in **Blog Connections** visual interface:
 
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Run: **"Live Blog Writer: Manage Blog Connections"**
-3. Click **"+ Add Blog"** button
-4. Fill in the form for your platform
-5. Optionally set credentials immediately or later
+1. Run: **"Live Blog Writer: Manage Blog Connections"**
+1. Click **"+ Add Blog"** button
+1. Fill in the form for your platform
+1. Optionally set credentials immediately or later
 
 The visual interface provides:
 
@@ -63,12 +81,6 @@ The visual interface provides:
 - **Command**: "Live Blog Writer: Authenticate with Blogger"
 - **Note**: Requires Google authentication
 
-#### Medium
-
-- **Requirements**: Integration token
-- **Command**: "Live Blog Writer: Set Medium Integration Token"
-- **Setup**: Get token from <https://medium.com/me/settings/security>
-
 #### Ghost
 
 - **Requirements**: Site URL, Admin API key
@@ -77,9 +89,10 @@ The visual interface provides:
 
 #### Substack
 
-- **Requirements**: Hostname, email/password OR connect.sid cookie
+- **Requirements**: Hostname, connect.sid cookie (recommended) OR email/password
 - **Command**: "Live Blog Writer: Set Substack API Key"
-- **Setup**: Use email/password (recommended) or get cookie from browser DevTools while logged into Substack
+- **Setup**: Get cookie from browser DevTools while logged into Substack (recommended) or use email/password (may not work due to API restrictions)
+- **Note**: Cookie authentication is more reliable. Enter hostname without `https://` prefix (e.g., `myblog.substack.com`)
 
 ### Detailed Setup Guides
 
@@ -94,7 +107,7 @@ For detailed platform-specific setup instructions, see:
 The old single-blog configuration still works but is deprecated. Please migrate to the new multi-blog system:
 
 1. Run: "Live Blog Writer: Manage Blog Configurations"
-2. Select: "Migrate Legacy Settings"
+1. Select: "Migrate Legacy Settings"
 
 Old settings format:
 
@@ -127,8 +140,8 @@ New settings format:
 ### Creating a New Blog Post
 
 1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
-2. Type "Live Blog Writer: New Blog Post" and press Enter
-3. The blog editor will open in a new panel
+1. Type "Live Blog Writer: New Blog Post" and press Enter
+1. The blog editor will open in a new panel
 
 ### Writing Your Post
 
@@ -141,7 +154,7 @@ New settings format:
    - **Tags**: Add tags by typing and pressing Enter
    - **Categories**: Add categories by typing and pressing Enter
 
-2. **Main Editor**:
+1. **Main Editor**:
    - Use the TinyMCE editor to write your content
    - Format text using the toolbar (bold, italic, lists, etc.)
    - Insert images, links, and other media
@@ -149,10 +162,10 @@ New settings format:
 ### Publishing Your Post
 
 1. **Select your target blog** from the "Selected Blog" dropdown (if not already selected)
-2. Click the **"Save Draft"** button to save your work locally
-3. Click the **"Publish Post"** button to publish to your selected blog
+1. Click the **"Save Draft"** button to save your work locally
+1. Click the **"Publish Post"** button to publish to your selected blog
    - If no blog is selected, you'll be prompted to choose one
-4. Or use the Command Palette: "Live Blog Writer: Publish Post"
+1. Or use the Command Palette: "Live Blog Writer: Publish Post"
 
 ## Features in Detail
 
@@ -187,14 +200,20 @@ Your work is automatically saved every 30 seconds, preventing data loss.
 
 - VS Code 1.85.0 or higher
 - Active internet connection for publishing
-- WordPress site with REST API enabled, or Blogger account
+- One of the supported platforms:
+  - WordPress site with REST API enabled (self-hosted or WordPress.com)
+  - Blogger account with Google authentication
+  - Ghost site with Admin API access
+  - Substack newsletter/blog
 
 ## Known Limitations
 
-- Tags and categories in WordPress currently use simplified handling
+- Tags and categories in WordPress use simplified handling
   - Full tag/category ID mapping to be implemented in future versions
 - Blogger combines tags and categories as "labels"
-- Image uploads need to be handled separately (links to external images work)
+- Image uploads must be handled separately (external image links work)
+- Substack email/password authentication may not work due to API restrictions (use cookie-based auth instead)
+- Substack supports limited HTML conversion (paragraphs and headings primarily)
 
 ## Troubleshooting
 
@@ -211,8 +230,8 @@ Make sure you have set:
 Run the command:
 
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Type "Live Blog Writer: Set WordPress Password"
-3. Enter your WordPress application password (not your regular password)
+1. Type "Live Blog Writer: Set WordPress Password"
+1. Enter your WordPress application password (not your regular password)
 
 ### "OAuth credentials not configured"
 
@@ -242,8 +261,8 @@ Make sure you have set:
 Run the command:
 
 1. Open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. Type "Live Blog Writer: Authenticate with Blogger"
-3. Sign in with your Google account and grant permissions
+1. Type "Live Blog Writer: Authenticate with Blogger"
+1. Sign in with your Google account and grant permissions
 
 ### Posts not appearing
 
@@ -265,8 +284,8 @@ npm run compile
 ### Running the Extension
 
 1. Open the project in VS Code
-2. Press F5 to start debugging
-3. A new VS Code window will open with the extension loaded
+1. Press F5 to start debugging
+1. A new VS Code window will open with the extension loaded
 
 ### Running Tests
 
@@ -292,7 +311,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Roadmap
 
-- [x] Multiple blog platform support (WordPress, Blogger, Medium, Ghost, Substack)
+- [x] Multiple blog platform support (WordPress, Blogger, Ghost, Substack)
 - [x] Visual blog connection management interface
 - [x] Default blog selection
 - [x] Draft management (list and edit existing drafts)

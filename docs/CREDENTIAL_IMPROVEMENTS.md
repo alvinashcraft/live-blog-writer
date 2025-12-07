@@ -162,7 +162,6 @@ liveBlogWriter.{platform}.{blogName}.{credentialType}
 **Examples:**
 
 - `liveBlogWriter.wordpress.MyBlog.password`
-- `liveBlogWriter.medium.TechBlog.token`
 - `liveBlogWriter.ghost.PersonalBlog.apikey`
 - `liveBlogWriter.substack.Newsletter.email`
 - `liveBlogWriter.substack.Newsletter.password`

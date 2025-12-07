@@ -272,9 +272,6 @@ live-blog-writer/
 - Full tag/category ID mapping for WordPress
 - Draft list and management
 - Update existing posts
-
-### Medium Priority
-
 - Custom post types (WordPress)
 - Multiple post windows
 - Post templates
@@ -283,7 +280,7 @@ live-blog-writer/
 
 ### Low Priority
 
-- Additional platforms (Medium, Dev.to)
+- Additional platforms (Dev.to, Hashnode)
 - Spell checker
 - Word count goals
 - Reading time estimate
