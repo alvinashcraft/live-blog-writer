@@ -58,6 +58,8 @@ The easiest way to set up your blogs is using the built-in **Blog Connections** 
 1. Fill in the form for your platform
 1. Optionally set credentials immediately or later
 
+> **NOTE:** Read the [QUICKSTART docs](./docs/QUICKSTART.md) for Substack blog configuration carefully. There are some special steps that must be taken to connect to your Substack account.
+
 The visual interface provides:
 
 - Card-based view of all your blogs
