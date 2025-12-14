@@ -1175,12 +1175,6 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
         return;
     }
 
-    // Dev.to expects Markdown content
-    if (postData.contentFormat !== 'markdown') {
-        vscode.window.showErrorMessage('Dev.to publishing requires Markdown content. Switch "Content format" to Markdown and try again.');
-        return;
-    }
-
     const service = new DevToService(apiKey);
 
     const combinedTags: string[] = [...(postData.tags || []), ...(postData.categories || [])]

@@ -427,7 +427,7 @@ export class BlogEditorPanel {
                     <option value="html">HTML</option>
                     <option value="markdown">Markdown</option>
                 </select>
-                <div class="hint-text">Choose HTML for current blog platforms; Markdown support is coming soon</div>
+                <div class="hint-text">Choose Markdown for Dev.to or HTML for other platforms</div>
             </div>
 
             <div class="form-group">

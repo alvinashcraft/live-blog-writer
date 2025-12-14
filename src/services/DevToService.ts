@@ -49,7 +49,11 @@ export class DevToService {
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                throw new Error(`Dev.to API Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`);
+                const errorMsg = error.response?.data?.error?.trim() || 
+                                 error.response?.data?.message?.trim() || 
+                                 error.message?.trim() || 
+                                 'Unknown error occurred';
+                throw new Error(`Dev.to API Error: ${errorMsg}`);
             }
             throw error;
         }
@@ -85,7 +89,11 @@ export class DevToService {
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                throw new Error(`Dev.to API Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`);
+                const errorMsg = error.response?.data?.error?.trim() || 
+                                 error.response?.data?.message?.trim() || 
+                                 error.message?.trim() || 
+                                 'Unknown error occurred';
+                throw new Error(`Dev.to API Error: ${errorMsg}`);
             }
             throw error;
         }
