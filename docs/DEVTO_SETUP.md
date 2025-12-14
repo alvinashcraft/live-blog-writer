@@ -47,7 +47,6 @@ Dev.to expects Markdown content.
 Dev.to supports up to 4 tags per article.
 
 - Live Blog Writer combines **Tags** and **Categories** and then keeps the first 4 unique values
-
 ## Current limitations
 
 - Updating existing Dev.to articles is not implemented yet (create-only).
