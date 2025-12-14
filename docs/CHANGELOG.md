@@ -2,6 +2,26 @@
 
 All notable changes to the "live-blog-writer" extension will be documented in this file.
 
+## [1.1.0] - 2025-12-14
+
+### ✨ Added
+
+- **Markdown Editor (EasyMDE)**: New Markdown editing mode alongside the existing HTML (TinyMCE) editor
+  - Content format selector (HTML / Markdown)
+  - Drafts persist the selected content format
+- **Dev.to Platform Support**: Publish Markdown posts to Dev.to
+  - Dev.to API key support stored securely via VS Code Secret Storage
+  - New command: "Live Blog Writer: Set Dev.to API Key"
+
+### 🔧 Changed
+
+- **Markdown Publishing to HTML Platforms**: When writing in Markdown, the extension converts Markdown → HTML at publish time for WordPress, Blogger, Ghost, and Substack
+
+### 📚 Documentation
+
+- Added docs for Markdown editor usage and Dev.to setup
+- Updated root README with the new platform and editor mode
+
 ## [1.0.0] - 2025-12-07
 
 ### 🎉 Major Release - Production Ready

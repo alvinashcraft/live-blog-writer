@@ -17,6 +17,8 @@ This folder contains development and contributor documentation for the Live Blog
 - **README.md** (in root directory) - Main project documentation (shown on GitHub and marketplace)
 - **LICENSE** (in root directory) - License information
 - **QUICKSTART.md** - Quick start guide for users
+- **MARKDOWN_EDITOR.md** - Using the HTML and Markdown editors
+- **DEVTO_SETUP.md** - Dev.to account setup and publishing notes
 - **CHANGELOG.md** - Version history and changes
 
 ## OAuth Setup Documentation

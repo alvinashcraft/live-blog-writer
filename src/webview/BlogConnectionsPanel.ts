@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 interface BlogConfig {
     name: string;
-    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack';
+    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack' | 'devto';
     id?: string;
     username?: string;
 }
@@ -270,6 +270,9 @@ export class BlogConnectionsPanel {
                     isValid = false;
                     message = 'Missing hostname';
                 }
+                break;
+            case 'devto':
+                // No required fields besides credential
                 break;
         }
 
@@ -729,6 +732,7 @@ export class BlogConnectionsPanel {
                         <option value="blogger">Blogger</option>
                         <option value="ghost">Ghost</option>
                         <option value="substack">Substack</option>
+                        <option value="devto">Dev.to</option>
                     </select>
                 </div>
 
@@ -804,6 +808,9 @@ export class BlogConnectionsPanel {
             substack: [
                 { name: 'id', label: 'Hostname', placeholder: 'myblog.substack.com', required: true, help: 'Your Substack hostname' },
                 { name: 'username', label: 'Username', placeholder: 'username', required: false, help: 'Your Substack username (optional)' }
+            ],
+            devto: [
+                { name: 'username', label: 'Username', placeholder: 'your-devto-username', required: false, help: 'Optional: used only for display' }
             ]
         };
 
@@ -811,7 +818,8 @@ export class BlogConnectionsPanel {
             wordpress: { label: 'Application Password', help: 'WordPress application password' },
             blogger: { label: 'OAuth (handled automatically)', help: 'OAuth authentication is managed automatically' },
             ghost: { label: 'Admin API Key', help: 'Format: id:secret from Ghost Admin → Integrations' },
-            substack: { label: 'API Key or Cookie', help: 'Substack API credentials' }
+            substack: { label: 'API Key or Cookie', help: 'Substack API credentials' },
+            devto: { label: 'API Key', help: 'Dev.to API key from Settings → Account → DEV API Keys' }
         };
 
         function updateFormFields() {

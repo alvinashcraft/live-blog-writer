@@ -12,6 +12,7 @@ export class BlogEditorPanel {
     private _postData: { 
         title: string; 
         content: string;
+        contentFormat?: 'html' | 'markdown';
         publishDate?: string;
         tags?: string[];
         categories?: string[];
@@ -80,6 +81,7 @@ export class BlogEditorPanel {
                         this._postData = {
                             title: message.title,
                             content: message.content,
+                            contentFormat: message.contentFormat,
                             publishDate: message.publishDate,
                             tags: message.tags,
                             categories: message.categories,
@@ -109,6 +111,7 @@ export class BlogEditorPanel {
     public async getPostData(): Promise<{ 
         title: string; 
         content: string;
+        contentFormat?: 'html' | 'markdown';
         publishDate?: string;
         tags?: string[];
         categories?: string[];
@@ -148,6 +151,7 @@ export class BlogEditorPanel {
         this._postData = {
             title: draftContent.title,
             content: draftContent.content,
+            contentFormat: draftContent.contentFormat,
             publishDate: draftContent.publishDate,
             tags: draftContent.tags,
             categories: draftContent.categories,
@@ -223,8 +227,10 @@ export class BlogEditorPanel {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.jsdelivr.net; font-src ${webview.cspSource} https://cdn.jsdelivr.net; img-src ${webview.cspSource} https: data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src ${webview.cspSource} 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src ${webview.cspSource} https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src ${webview.cspSource} https: data:;">
     <title>Blog Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
     <style>
         body {
             padding: 0;
@@ -320,6 +326,35 @@ export class BlogEditorPanel {
             flex-direction: column;
             overflow: hidden;
         }
+        .editor-content.markdown-mode {
+            background-color: var(--vscode-editor-background);
+        }
+        #htmlEditorContainer,
+        #markdownEditorContainer {
+            height: calc(100vh - 120px);
+        }
+        #markdownEditorContainer {
+            display: none;
+        }
+        .EasyMDEContainer {
+            height: 100%;
+        }
+        .EasyMDEContainer .CodeMirror {
+            height: 100%;
+            border: 1px solid var(--vscode-panel-border);
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+        }
+        .editor-toolbar {
+            border: 1px solid var(--vscode-panel-border);
+            border-bottom: none;
+            background-color: var(--vscode-editor-background);
+        }
+        .editor-preview,
+        .editor-preview-side {
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+        }
         .editor-header {
             padding: 20px 20px 10px 20px;
             background-color: var(--vscode-editor-background);
@@ -387,6 +422,15 @@ export class BlogEditorPanel {
             </div>
 
             <div class="form-group">
+                <label for="contentFormat">Content format</label>
+                <select id="contentFormat">
+                    <option value="html">HTML</option>
+                    <option value="markdown">Markdown</option>
+                </select>
+                <div class="hint-text">Choose Markdown for Dev.to or HTML for other platforms</div>
+            </div>
+
+            <div class="form-group">
                 <label for="postStatus">Status</label>
                 <select id="postStatus">
                     <option value="draft">Draft</option>
@@ -428,8 +472,13 @@ export class BlogEditorPanel {
             <div class="editor-header">
                 <h1>Blog Post Editor</h1>
             </div>
-            <div class="editor-content">
-                <textarea id="editor"></textarea>
+            <div class="editor-content" id="editorContentArea">
+                <div id="htmlEditorContainer">
+                    <textarea id="editor"></textarea>
+                </div>
+                <div id="markdownEditorContainer">
+                    <textarea id="markdownEditor"></textarea>
+                </div>
             </div>
             <div class="button-container">
                 <button id="saveBtn" class="secondary">Save Draft</button>
@@ -439,6 +488,7 @@ export class BlogEditorPanel {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js" nonce="${nonce}"></script>
     <script nonce="${nonce}">
         ${draftDataScript}
         ${blogConfigsScript}
@@ -447,6 +497,10 @@ export class BlogEditorPanel {
         // Initialize tag and category arrays
         let tags = [];
         let categories = [];
+
+        // Editor mode
+        let contentFormat = 'html';
+        let easyMDE = null;
         
         // Blog configurations will be injected by VS Code
         window.blogConfigs = window.blogConfigs || [];
@@ -470,6 +524,96 @@ export class BlogEditorPanel {
                 });
             }
         });
+
+        function ensureEasyMDE() {
+            if (easyMDE) {
+                return;
+            }
+            if (typeof EasyMDE === 'undefined') {
+                console.error('EasyMDE failed to load (CDN).');
+                return;
+            }
+            const textarea = document.getElementById('markdownEditor');
+            easyMDE = new EasyMDE({
+                element: textarea,
+                autofocus: false,
+                spellChecker: false,
+                status: ['lines', 'words', 'cursor'],
+                toolbar: [
+                    'bold', 'italic', 'heading', '|',
+                    'quote', 'unordered-list', 'ordered-list', '|',
+                    'link', 'image', 'code', '|',
+                    'preview', 'side-by-side', 'fullscreen', '|',
+                    'guide'
+                ],
+                shortcuts: {
+                    toggleFullScreen: null
+                }
+            });
+
+            // Track changes
+            easyMDE.codemirror.on('change', function() {
+                savePostData();
+            });
+        }
+
+        function getActiveContent() {
+            if (contentFormat === 'markdown') {
+                if (easyMDE) {
+                    return easyMDE.value();
+                }
+                return document.getElementById('markdownEditor').value || '';
+            }
+            return tinymce.get('editor') ? tinymce.get('editor').getContent() : '';
+        }
+
+        function setActiveContent(value) {
+            const content = value || '';
+            if (contentFormat === 'markdown') {
+                ensureEasyMDE();
+                if (easyMDE) {
+                    easyMDE.value(content);
+                } else {
+                    document.getElementById('markdownEditor').value = content;
+                }
+                return;
+            }
+
+            if (tinymce.get('editor')) {
+                tinymce.get('editor').setContent(content);
+            } else {
+                const checkEditor = setInterval(() => {
+                    if (tinymce.get('editor')) {
+                        tinymce.get('editor').setContent(content);
+                        clearInterval(checkEditor);
+                    }
+                }, 100);
+            }
+        }
+
+        function applyContentFormat(newFormat) {
+            const htmlContainer = document.getElementById('htmlEditorContainer');
+            const mdContainer = document.getElementById('markdownEditorContainer');
+            const editorContentArea = document.getElementById('editorContentArea');
+
+            const previousContent = getActiveContent();
+            contentFormat = (newFormat === 'markdown') ? 'markdown' : 'html';
+
+            if (contentFormat === 'markdown') {
+                htmlContainer.style.display = 'none';
+                mdContainer.style.display = 'block';
+                editorContentArea.classList.add('markdown-mode');
+                ensureEasyMDE();
+            } else {
+                mdContainer.style.display = 'none';
+                htmlContainer.style.display = 'block';
+                editorContentArea.classList.remove('markdown-mode');
+            }
+
+            // Preserve content across mode switches (no conversion yet)
+            setActiveContent(previousContent);
+            savePostData();
+        }
 
         // Tag management
         document.getElementById('tagsInput').addEventListener('keypress', (e) => {
@@ -556,16 +700,18 @@ export class BlogEditorPanel {
         // Save post data to extension
         function savePostData() {
             const title = document.getElementById('postTitle').value;
-            const content = tinymce.get('editor') ? tinymce.get('editor').getContent() : '';
+            const content = getActiveContent();
             const publishDate = document.getElementById('publishDate').value;
             const excerpt = document.getElementById('postExcerpt').value;
             const status = document.getElementById('postStatus').value;
             const selectedBlog = document.getElementById('selectedBlog').value;
+            const format = document.getElementById('contentFormat').value;
             
             vscode.postMessage({
                 command: 'savePostData',
                 title: title,
                 content: content,
+                contentFormat: (format === 'markdown') ? 'markdown' : 'html',
                 publishDate: publishDate || undefined,
                 tags: tags,
                 categories: categories,
@@ -601,6 +747,9 @@ export class BlogEditorPanel {
         // Listen for changes on all metadata fields
         document.getElementById('selectedBlog').addEventListener('change', savePostData);
         document.getElementById('postTitle').addEventListener('input', savePostData);
+        document.getElementById('contentFormat').addEventListener('change', (e) => {
+            applyContentFormat(e.target.value);
+        });
         document.getElementById('postStatus').addEventListener('change', savePostData);
         document.getElementById('publishDate').addEventListener('change', savePostData);
         document.getElementById('postExcerpt').addEventListener('input', savePostData);
@@ -621,6 +770,10 @@ export class BlogEditorPanel {
         // Load draft data if available
         function loadDraftData(draftData) {
             if (!draftData) return;
+
+            const initialFormat = (draftData.contentFormat === 'markdown') ? 'markdown' : 'html';
+            document.getElementById('contentFormat').value = initialFormat;
+            applyContentFormat(initialFormat);
             
             if (draftData.selectedBlog) {
                 document.getElementById('selectedBlog').value = draftData.selectedBlog;
@@ -638,18 +791,7 @@ export class BlogEditorPanel {
             categories = draftData.categories || [];
             renderCategories();
             
-            // Load content into TinyMCE when it's ready
-            if (tinymce.get('editor')) {
-                tinymce.get('editor').setContent(draftData.content || '');
-            } else {
-                // Wait for TinyMCE to initialize
-                const checkEditor = setInterval(() => {
-                    if (tinymce.get('editor')) {
-                        tinymce.get('editor').setContent(draftData.content || '');
-                        clearInterval(checkEditor);
-                    }
-                }, 100);
-            }
+            setActiveContent(draftData.content || '');
         }
 
         // Initialize blog selection
@@ -659,6 +801,10 @@ export class BlogEditorPanel {
         window.draftData = window.draftData || null;
         if (window.draftData) {
             loadDraftData(window.draftData);
+        } else {
+            // Default content format for new drafts
+            const initialFormat = document.getElementById('contentFormat').value || 'html';
+            applyContentFormat(initialFormat);
         }
     </script>
 </body>
