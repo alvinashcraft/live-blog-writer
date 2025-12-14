@@ -4,7 +4,7 @@
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/alvinashcraft.live-blog-writer)](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/alvinashcraft.live-blog-writer)](https://marketplace.visualstudio.com/items?itemName=alvinashcraft.live-blog-writer)
 
-A VS Code extension for writing and publishing blog posts with a WYSIWYG editor. Supports WordPress, Blogger, Ghost, and Substack platforms.
+A VS Code extension for writing and publishing blog posts with built-in HTML and Markdown editors. Supports WordPress, Blogger, Ghost, Substack, and Dev.to.
 
 Full-featured WYSIWYG blog post editor experience:
 
@@ -14,14 +14,17 @@ The blog connections manager screen:
 
 ![Blog Connections Manager](images/screenshots/connections.png)
 
-Add a new blog from WordPress, Blogger, Substack, or Ghost:
+Add a new blog from WordPress, Blogger, Ghost, Substack, or Dev.to:
 
 ![Add New Blog](images/screenshots/add-blog.png)
 
 ## Features
 
-- **WYSIWYG Editing**: Rich text editor powered by TinyMCE with full formatting capabilities
-- **Multi-Platform Support**: Publish to WordPress, Blogger, Ghost, and Substack
+- **Dual Editor Modes**: HTML editor (TinyMCE) and Markdown editor (EasyMDE)
+- **Markdown Publishing Support**:
+  - Publish Markdown directly to Dev.to
+  - Publish Markdown to HTML-based platforms via Markdown→HTML conversion at publish time
+- **Multi-Platform Support**: Publish to WordPress, Blogger, Ghost, Substack, and Dev.to
 - **Multiple Blogs**: Configure and manage multiple blogs across different platforms
 - **Visual Blog Management**: Intuitive webview interface for managing all blog connections
 - **Default Blog**: Set a default blog for quick publishing
@@ -96,12 +99,21 @@ The visual interface provides:
 - **Setup**: Get cookie from browser DevTools while logged into Substack (recommended) or use email/password (may not work due to API restrictions)
 - **Note**: Cookie authentication is more reliable. Enter hostname without `https://` prefix (e.g., `myblog.substack.com`)
 
+#### Dev.to
+
+- **Requirements**: Dev.to API key
+- **Command**: "Live Blog Writer: Set Dev.to API Key"
+- **Setup**: Create an API key in Dev.to Settings → Account → DEV API Keys
+- **Note**: Dev.to publishing requires Markdown content (set "Content format" to Markdown)
+
 ### Detailed Setup Guides
 
 For detailed platform-specific setup instructions, see:
 
 - [Blog Connections UI Guide](docs/BLOG_CONNECTIONS_UI.md) - Visual interface for managing blogs
 - [Multi-Blog Platform Guide](docs/MULTI_BLOG_GUIDE.md)
+- [Markdown Editor Guide](docs/MARKDOWN_EDITOR.md)
+- [Dev.to Setup Guide](docs/DEVTO_SETUP.md)
 - [Migration Guide](docs/MIGRATION_GUIDE.md) (for existing users)
 
 ### Legacy Configuration (Deprecated)
@@ -157,9 +169,10 @@ New settings format:
    - **Categories**: Add categories by typing and pressing Enter
 
 1. **Main Editor**:
-   - Use the TinyMCE editor to write your content
-   - Format text using the toolbar (bold, italic, lists, etc.)
-   - Insert images, links, and other media
+  - Choose a "Content format":
+    - **HTML** (TinyMCE)
+    - **Markdown** (EasyMDE)
+  - Write your content using the selected editor
 
 ### Publishing Your Post
 
@@ -207,6 +220,7 @@ Your work is automatically saved every 30 seconds, preventing data loss.
   - Blogger account with Google authentication
   - Ghost site with Admin API access
   - Substack newsletter/blog
+  - Dev.to account with a DEV API key
 
 ## Known Limitations
 
@@ -216,6 +230,8 @@ Your work is automatically saved every 30 seconds, preventing data loss.
 - Image uploads must be handled separately (external image links work)
 - Substack email/password authentication may not work due to API restrictions (use cookie-based auth instead)
 - Substack supports limited HTML conversion (paragraphs and headings primarily)
+- Dev.to update workflow (updating existing articles) is not implemented yet
+- Dev.to supports a maximum of 4 tags (this extension trims combined tags/categories to 4)
 
 ## Troubleshooting
 

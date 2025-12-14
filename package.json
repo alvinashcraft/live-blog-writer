@@ -3,7 +3,7 @@
   "displayName": "Live Blog Writer",
   "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress, Blogger, Ghost, and Substack blogs",
   "icon": "images/writerIcon.png",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -27,7 +27,9 @@
     "publishing",
     "tinymce",
     "markdown",
-    "writing"
+    "writing",
+    "devto",
+    "dev.to"
   ],
   "engines": {
     "vscode": "^1.85.0"
@@ -87,6 +89,10 @@
       {
         "command": "live-blog-writer.setSubstackApiKey",
         "title": "Live Blog Writer: Set Substack Credentials"
+      },
+      {
+        "command": "live-blog-writer.setDevToApiKey",
+        "title": "Live Blog Writer: Set Dev.to API Key"
       }
     ],
     "configuration": {
@@ -99,7 +105,8 @@
             "wordpress",
             "blogger",
             "ghost",
-            "substack"
+            "substack",
+            "devto"
           ],
           "description": "[DEPRECATED] Blog platform to publish to. Use liveBlogWriter.blogs for multiple blog support.",
           "deprecationMessage": "Use liveBlogWriter.blogs array instead for better multi-blog support"
@@ -121,7 +128,8 @@
                   "wordpress",
                   "blogger",
                   "ghost",
-                  "substack"
+                  "substack",
+                  "devto"
                 ],
                 "description": "Blog platform type"
               },
@@ -182,6 +190,7 @@
     "publish": "npm run package:production && vsce publish"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.x",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
@@ -195,6 +204,7 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "axios": "^1.12.2"
+    "axios": "^1.12.2",
+    "markdown-it": "^14.1.0"
   }
 }

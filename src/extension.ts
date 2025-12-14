@@ -5,8 +5,10 @@ import { WordPressService } from './services/WordPressService';
 import { BloggerService } from './services/BloggerService';
 import { GhostService } from './services/GhostService';
 import { SubstackService } from './services/SubstackService';
+import { DevToService } from './services/DevToService';
 import { DraftManager } from './services/DraftManager';
 import { GoogleOAuthService } from './services/GoogleOAuthService';
+import MarkdownIt from 'markdown-it';
 
 const WORDPRESS_PASSWORD_KEY = 'liveBlogWriter.wordpress.password';
 
@@ -32,7 +34,7 @@ interface BloggerPublishOptions {
 
 interface BlogConfig {
     name: string;
-    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack';
+    platform: 'wordpress' | 'blogger' | 'ghost' | 'substack' | 'devto';
     id?: string;
     username?: string;
 }
@@ -223,10 +225,12 @@ export function activate(context: vscode.ExtensionContext) {
                 // Try legacy settings
                 const platform = config.get<string>('platform', 'wordpress');
                 if (platform === 'wordpress') {
-                    await publishToWordPress(postData, config, context);
+                    const postDataForPublish = await getPostDataForPlatform(postData, 'wordpress');
+                    await publishToWordPress(postDataForPublish, config, context);
                     return;
                 } else if (platform === 'blogger') {
-                    await publishToBlogger(postData, config, context);
+                    const postDataForPublish = await getPostDataForPlatform(postData, 'blogger');
+                    await publishToBlogger(postDataForPublish, config, context);
                     return;
                 }
                 
@@ -248,19 +252,24 @@ export function activate(context: vscode.ExtensionContext) {
             selectedBlog = blogs[index];
         }
 
+        const postDataForPublish = await getPostDataForPlatform(postData, selectedBlog.platform);
+
         try {
             switch (selectedBlog.platform) {
                 case 'wordpress':
-                    await publishToWordPressNew(postData, selectedBlog, context);
+                    await publishToWordPressNew(postDataForPublish, selectedBlog, context);
                     break;
                 case 'blogger':
-                    await publishToBloggerNew(postData, selectedBlog, context);
+                    await publishToBloggerNew(postDataForPublish, selectedBlog, context);
                     break;
                 case 'ghost':
-                    await publishToGhost(postData, selectedBlog, context);
+                    await publishToGhost(postDataForPublish, selectedBlog, context);
                     break;
                 case 'substack':
-                    await publishToSubstack(postData, selectedBlog, context);
+                    await publishToSubstack(postDataForPublish, selectedBlog, context);
+                    break;
+                case 'devto':
+                    await publishToDevTo(postDataForPublish, selectedBlog, context);
                     break;
                 default:
                     vscode.window.showErrorMessage(`Unsupported platform: ${selectedBlog.platform}`);
@@ -535,6 +544,40 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Register command to set Dev.to API key
+    let setDevToApiKeyCommand = vscode.commands.registerCommand('live-blog-writer.setDevToApiKey', async () => {
+        const config = vscode.workspace.getConfiguration('liveBlogWriter');
+        const blogs = config.get<BlogConfig[]>('blogs', []);
+        const devtoBlogs = blogs.filter(b => b.platform === 'devto');
+
+        if (devtoBlogs.length === 0) {
+            vscode.window.showErrorMessage('No Dev.to blog configurations found. Please add a Dev.to account in Blog Connections first.');
+            return;
+        }
+
+        const blogNames = devtoBlogs.map(b => b.name);
+        const selectedBlog = await vscode.window.showQuickPick(blogNames, {
+            placeHolder: 'Select Dev.to account to set API key for'
+        });
+
+        if (!selectedBlog) {
+            return;
+        }
+
+        const apiKey = await vscode.window.showInputBox({
+            prompt: 'Enter your Dev.to API key',
+            password: true,
+            ignoreFocusOut: true,
+            placeHolder: 'DEV API key from Settings → Account → DEV API Keys'
+        });
+
+        if (apiKey) {
+            const secretKey = getSecretKey('devto', selectedBlog, 'apikey');
+            await context.secrets.store(secretKey, apiKey);
+            vscode.window.showInformationMessage('Dev.to API key saved securely.');
+        }
+    });
+
     context.subscriptions.push(
         newPostCommand, 
         publishPostCommand, 
@@ -546,7 +589,8 @@ export function activate(context: vscode.ExtensionContext) {
         saveDraftCommand,
         manageBlogConfigurationsCommand,
         setGhostApiKeyCommand,
-        setSubstackApiKeyCommand
+        setSubstackApiKeyCommand,
+        setDevToApiKeyCommand
     );
 }
 
@@ -1118,6 +1162,73 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
     vscode.window.showInformationMessage(
         `Post ${isDraft ? 'saved as draft' : 'published'} successfully to ${blogConfig.name}!\nURL: ${result.url}`
     );
+}
+
+async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
+    const secretKey = getSecretKey('devto', blogConfig.name, 'apikey');
+    const apiKey = await context.secrets.get(secretKey);
+
+    if (!apiKey) {
+        vscode.window.showErrorMessage(
+            `Dev.to API key not set for "${blogConfig.name}". Please use Blog Connections to set it, or run "Live Blog Writer: Set Dev.to API Key".`
+        );
+        return;
+    }
+
+    // Dev.to expects Markdown content
+    if (postData.contentFormat !== 'markdown') {
+        vscode.window.showErrorMessage('Dev.to publishing requires Markdown content. Switch "Content format" to Markdown and try again.');
+        return;
+    }
+
+    const service = new DevToService(apiKey);
+
+    const combinedTags: string[] = [...(postData.tags || []), ...(postData.categories || [])]
+        .map((t: string) => (t || '').trim())
+        .filter((t: string) => t.length > 0)
+        .map((t: string) => t.startsWith('#') ? t.slice(1) : t);
+
+    // Dev.to supports up to 4 tags
+    const uniqueTags = Array.from(new Set(combinedTags)).slice(0, 4);
+
+    const published = postData.status === 'publish';
+
+    const result = await service.createArticle({
+        title: postData.title,
+        bodyMarkdown: postData.content || '',
+        published,
+        tags: uniqueTags.length > 0 ? uniqueTags : undefined,
+        description: postData.excerpt
+    });
+
+    const url = result?.url || result?.canonical_url;
+    vscode.window.showInformationMessage(
+        `Post ${published ? 'published' : 'saved as draft'} successfully to ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
+    );
+}
+
+async function getPostDataForPlatform(postData: any, platform: BlogConfig['platform'] | string): Promise<any> {
+    const postDataForPublish = { ...postData } as any;
+
+    // Dev.to expects Markdown content; do not convert
+    if (platform === 'devto') {
+        if (postDataForPublish.contentFormat !== 'markdown') {
+            throw new Error('Dev.to publishing requires Markdown content. Switch "Content format" to Markdown and try again.');
+        }
+        return postDataForPublish;
+    }
+
+    // HTML-based platforms: if authored in Markdown, convert to HTML before publishing.
+    if (postDataForPublish.contentFormat === 'markdown') {
+        const md = new MarkdownIt({
+            html: true,
+            linkify: true,
+            breaks: true
+        });
+        postDataForPublish.content = md.render(postDataForPublish.content || '');
+    }
+
+    return postDataForPublish;
 }
 
 /**

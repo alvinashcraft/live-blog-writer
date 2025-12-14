@@ -17,6 +17,7 @@ export interface DraftContent {
     metadata: DraftMetadata;
     title: string;
     content: string;
+    contentFormat?: 'html' | 'markdown';
     publishDate?: string;
     tags?: string[];
     categories?: string[];
@@ -199,6 +200,7 @@ export class DraftManager {
                 metadata,
                 title: draftContent.title || '',
                 content: draftContent.content || '',
+                contentFormat: draftContent.contentFormat,
                 publishDate: draftContent.publishDate,
                 tags: draftContent.tags || [],
                 categories: draftContent.categories || [],
