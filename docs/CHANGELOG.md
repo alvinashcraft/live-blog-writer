@@ -2,6 +2,31 @@
 
 All notable changes to the "live-blog-writer" extension will be documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Edit Published Posts**: New feature to edit posts that have already been published
+  - New command: "Live Blog Writer: Edit Published Post"
+  - Fetches 10 most recent published posts from selected blog
+  - Shows edit-in-progress indicator for posts with local edits
+  - Supports WordPress, Blogger, Ghost, and Dev.to (Substack read-only)
+  - Seamless workflow: fetch post → edit → republish
+  - Platform-specific update methods with proper validation
+
+### 🔧 Changed
+
+- Enhanced all service APIs with `getPosts()` and `getPost()` methods
+- Standardized `updatePost()` methods across all platforms
+- Improved error messages and validation throughout
+- Added platform-specific ID type conversion for consistency
+
+### 📚 Documentation
+
+- Added comprehensive guide: `docs/EDITING_PUBLISHED_POSTS.md`
+- Updated README with edit feature description and usage
+- Updated roadmap and known limitations
+
 ## [1.1.0] - 2025-12-14
 
 ### ✨ Added
