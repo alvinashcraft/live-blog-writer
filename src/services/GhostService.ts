@@ -202,4 +202,149 @@ export class GhostService {
             };
         }
     }
+
+    /**
+     * Get a list of posts
+     * @param limit Number of posts to retrieve
+     * @returns Array of posts
+     */
+    async getPosts(limit: number = 10) {
+        try {
+            const token = this.generateToken();
+            const response = await this.api.get('/posts/', {
+                params: {
+                    limit: limit,
+                    filter: 'status:published',
+                    formats: 'html'
+                },
+                headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Authorization': `Ghost ${token}`
+                }
+            });
+
+            return response.data.posts || [];
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.errors?.[0]?.message || error.message;
+                throw new Error(`Failed to get Ghost posts: ${errorMessage}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a single post by ID
+     * @param postId Post ID
+     * @returns Post data
+     */
+    async getPost(postId: string) {
+        try {
+            const token = this.generateToken();
+            const response = await this.api.get(`/posts/${postId}/`, {
+                params: {
+                    formats: 'html'
+                },
+                headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Authorization': `Ghost ${token}`
+                }
+            });
+
+            return response.data.posts[0];
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.errors?.[0]?.message || error.message;
+                throw new Error(`Failed to get Ghost post: ${errorMessage}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Update an existing blog post on Ghost
+     * @param postId Post ID
+     * @param title Post title
+     * @param content Post content (HTML)
+     * @param options Additional options (status, tags, excerpt, featured, etc.)
+     * @returns Updated post data
+     */
+    async updatePost(
+        postId: string,
+        title: string, 
+        content: string,
+        options?: {
+            status?: 'draft' | 'published' | 'scheduled';
+            tags?: string[];
+            excerpt?: string;
+            featuredImage?: string;
+            featured?: boolean;
+            publishedAt?: string;
+            customExcerpt?: string;
+            updatedAt?: string;
+        }
+    ) {
+        try {
+            const mobiledoc = this.htmlToMobiledoc(content);
+
+            const postData: any = {
+                posts: [{
+                    title: title,
+                    mobiledoc: mobiledoc,
+                    status: options?.status || 'published',
+                    updated_at: options?.updatedAt
+                }]
+            };
+
+            // Add optional fields
+            if (options?.tags && options.tags.length > 0) {
+                postData.posts[0].tags = options.tags.map(tag => ({ name: tag }));
+            }
+
+            if (options?.excerpt || options?.customExcerpt) {
+                postData.posts[0].custom_excerpt = options.excerpt || options.customExcerpt;
+            }
+
+            if (options?.featuredImage) {
+                postData.posts[0].feature_image = options.featuredImage;
+            }
+
+            if (options?.featured !== undefined) {
+                postData.posts[0].featured = options.featured;
+            }
+
+            if (options?.publishedAt) {
+                postData.posts[0].published_at = options.publishedAt;
+            }
+
+            // Generate JWT token for authentication
+            const token = this.generateToken();
+
+            const response = await this.api.put(`/posts/${postId}/`, postData, {
+                params: {
+                    source: 'html'
+                },
+                headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Authorization': `Ghost ${token}`
+                }
+            });
+
+            const post = response.data.posts[0];
+            return {
+                id: post.id,
+                url: post.url,
+                title: post.title,
+                status: post.status,
+                publishedAt: post.published_at,
+                excerpt: post.custom_excerpt
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.errors?.[0]?.message || error.message;
+                throw new Error(`Failed to update Ghost post: ${errorMessage}`);
+            }
+            throw error;
+        }
+    }
 }

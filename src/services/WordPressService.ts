@@ -118,10 +118,28 @@ export class WordPressService {
             const response = await this.api.get('/posts', {
                 params: {
                     page: page,
-                    per_page: perPage
+                    per_page: perPage,
+                    status: 'publish'
                 }
             });
 
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`WordPress API Error: ${error.response?.data?.message || error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a single post by ID
+     * @param postId Post ID
+     * @returns Post data
+     */
+    async getPost(postId: number) {
+        try {
+            const response = await this.api.get(`/posts/${postId}`);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {

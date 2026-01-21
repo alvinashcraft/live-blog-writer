@@ -93,6 +93,10 @@
       {
         "command": "live-blog-writer.setDevToApiKey",
         "title": "Live Blog Writer: Set Dev.to API Key"
+      },
+      {
+        "command": "live-blog-writer.editPublishedPost",
+        "title": "Live Blog Writer: Edit Published Post"
       }
     ],
     "configuration": {

@@ -121,12 +121,33 @@ export class BloggerService {
                 `/blogs/${this.blogId}/posts`,
                 {
                     params: {
-                        maxResults: maxResults
+                        maxResults: maxResults,
+                        status: 'live'
                     }
                 }
             );
 
             return response.data.items || [];
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Blogger API Error: ${error.response?.data?.error?.message || error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a single post by ID
+     * @param postId Post ID
+     * @returns Post data
+     */
+    async getPost(postId: string) {
+        try {
+            const response = await this.api.get(
+                `/blogs/${this.blogId}/posts/${postId}`
+            );
+
+            return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(`Blogger API Error: ${error.response?.data?.error?.message || error.message}`);

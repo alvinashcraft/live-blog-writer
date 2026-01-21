@@ -354,4 +354,53 @@ export class SubstackService {
             };
         }
     }
+
+    /**
+     * Get a list of published posts
+     * @param limit Number of posts to retrieve
+     * @returns Array of posts
+     */
+    async getPosts(limit: number = 10) {
+        try {
+            // Ensure authenticated before making requests
+            await this.ensureAuthenticated();
+            
+            const response = await this.api.get('/archive', {
+                params: {
+                    limit: limit,
+                    offset: 0
+                }
+            });
+
+            return response.data || [];
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+                throw new Error(`Failed to get Substack posts: ${errorMessage}`);
+            }
+            throw new Error(`Failed to get Substack posts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Get a single post by ID
+     * @param postId Post ID
+     * @returns Post data
+     */
+    async getPost(postId: number) {
+        try {
+            // Ensure authenticated before making requests
+            await this.ensureAuthenticated();
+            
+            const response = await this.api.get(`/posts/${postId}`);
+
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+                throw new Error(`Failed to get Substack post: ${errorMessage}`);
+            }
+            throw new Error(`Failed to get Substack post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
 }

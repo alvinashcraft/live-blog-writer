@@ -11,6 +11,9 @@ export interface DraftMetadata {
     wordCount: number;
     platform?: string;
     status?: string;
+    publishedPostId?: string | number;  // ID of the published post (for editing)
+    blogName?: string;  // Name of the blog this post is published to
+    isEditDraft?: boolean;  // True if this is a draft for editing a published post
 }
 
 export interface DraftContent {
@@ -23,6 +26,9 @@ export interface DraftContent {
     categories?: string[];
     excerpt?: string;
     status?: string;
+    publishedPostId?: string | number;  // ID of the published post (for editing)
+    blogName?: string;  // Name of the blog this post is published to
+    isEditDraft?: boolean;  // True if this is a draft for editing a published post
 }
 
 export class DraftManager {
@@ -192,7 +198,10 @@ export class DraftManager {
                 updatedAt: now,
                 wordCount: wordCount,
                 platform: draftContent.status ? 'wordpress' : undefined, // Infer platform if needed
-                status: draftContent.status || 'draft'
+                status: draftContent.status || 'draft',
+                publishedPostId: draftContent.publishedPostId,
+                blogName: draftContent.blogName,
+                isEditDraft: draftContent.isEditDraft
             };
 
             // Create complete draft content
@@ -205,7 +214,10 @@ export class DraftManager {
                 tags: draftContent.tags || [],
                 categories: draftContent.categories || [],
                 excerpt: draftContent.excerpt,
-                status: draftContent.status || 'draft'
+                status: draftContent.status || 'draft',
+                publishedPostId: draftContent.publishedPostId,
+                blogName: draftContent.blogName,
+                isEditDraft: draftContent.isEditDraft
             };
 
             // Save draft file
