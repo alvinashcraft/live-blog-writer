@@ -291,10 +291,16 @@ export class GhostService {
                 posts: [{
                     title: title,
                     mobiledoc: mobiledoc,
-                    status: options?.status || 'published',
-                    updated_at: options?.updatedAt
+                    status: options?.status || 'published'
                 }]
             };
+
+            // updated_at is required for Ghost to prevent conflicts
+            if (options?.updatedAt) {
+                postData.posts[0].updated_at = options.updatedAt;
+            } else {
+                throw new Error('Ghost requires updated_at timestamp to update a post. Please provide the current updated_at value.');
+            }
 
             // Add optional fields
             if (options?.tags && options.tags.length > 0) {

@@ -83,18 +83,47 @@ export class WordPressService {
      * @param postId Post ID
      * @param title Post title
      * @param content Post content (HTML)
-     * @param status Post status
+     * @param options Additional options (status, date, excerpt, tags, categories)
      * @returns Updated post data
      */
-    async updatePost(postId: number, title: string, content: string, status?: string) {
+    async updatePost(
+        postId: number, 
+        title: string, 
+        content: string, 
+        options?: {
+            status?: string;
+            date?: string;
+            excerpt?: string;
+            tags?: string[];
+            categories?: string[];
+        }
+    ) {
         try {
             const data: any = {
                 title: title,
                 content: content
             };
 
-            if (status) {
-                data.status = status;
+            if (options?.status) {
+                data.status = options.status;
+            }
+
+            if (options?.date) {
+                data.date = options.date;
+            }
+
+            if (options?.excerpt) {
+                data.excerpt = options.excerpt;
+            }
+
+            // For tags and categories, we would need to map them to IDs
+            // This is a simplified approach for now
+            if (options?.tags && options.tags.length > 0) {
+                // Store tags as meta or handle appropriately
+            }
+
+            if (options?.categories && options.categories.length > 0) {
+                // Store categories as meta or handle appropriately
             }
 
             const response = await this.api.put(`/posts/${postId}`, data);

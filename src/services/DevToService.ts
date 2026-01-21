@@ -59,7 +59,7 @@ export class DevToService {
         }
     }
 
-    async updateArticle(articleId: number, update: {
+    async updatePost(articleId: number, update: {
         title?: string;
         bodyMarkdown?: string;
         published?: boolean;

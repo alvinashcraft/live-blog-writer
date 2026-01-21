@@ -1342,7 +1342,7 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
             Number(postData.publishedPostId), 
             postData.title, 
             postData.content, 
-            options.status
+            options
         );
         vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
     } else {
@@ -1401,10 +1401,21 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
+        const updateOptions: { labels?: string[]; published?: string } = {};
+        
+        if (labels.length > 0) {
+            updateOptions.labels = labels;
+        }
+        
+        if (options.published) {
+            updateOptions.published = options.published;
+        }
+        
         const result = await service.updatePost(
             String(postData.publishedPostId),
             postData.title,
-            postData.content
+            postData.content,
+            updateOptions
         );
         vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
     } else {
@@ -1447,6 +1458,12 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
     if (postData.publishedPostId && postData.isEditDraft) {
         // Need to fetch current post to get updated_at for Ghost
         const currentPost = await service.getPost(String(postData.publishedPostId));
+        
+        if (!currentPost.updated_at) {
+            vscode.window.showErrorMessage('Failed to get current post timestamp. Ghost requires this to prevent conflicts.');
+            return;
+        }
+        
         const result = await service.updatePost(
             String(postData.publishedPostId),
             postData.title,
@@ -1546,7 +1563,7 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
-        const result = await service.updateArticle(Number(postData.publishedPostId), {
+        const result = await service.updatePost(Number(postData.publishedPostId), {
             title: postData.title,
             bodyMarkdown: postData.content || '',
             published,
