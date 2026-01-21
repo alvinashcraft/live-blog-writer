@@ -1432,7 +1432,7 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
             updateOptions.published = options.published;
         }
         
-        const result = await service.updatePost(
+        await service.updatePost(
             postId as string,
             postData.title,
             postData.content,
