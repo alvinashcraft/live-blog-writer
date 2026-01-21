@@ -1358,7 +1358,7 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
         const postId = convertPostIdForPlatform(postData.publishedPostId, 'wordpress');
-        const result = await service.updatePost(
+        await service.updatePost(
             postId as number, 
             postData.title, 
             postData.content, 
