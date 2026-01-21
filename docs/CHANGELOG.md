@@ -2,7 +2,7 @@
 
 All notable changes to the "live-blog-writer" extension will be documented in this file.
 
-## [Unreleased]
+## [1.2.0] - 2026-01-21
 
 ### ✨ Added
 
