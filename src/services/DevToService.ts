@@ -105,7 +105,7 @@ export class DevToService {
      * @param perPage Number of articles per page (default: 10, max: 1000)
      * @returns Array of articles
      */
-    async getArticles(page: number = 1, perPage: number = 10) {
+    async getPosts(page: number = 1, perPage: number = 10) {
         try {
             const response = await this.api.get('/articles/me/published', {
                 params: {
@@ -132,7 +132,7 @@ export class DevToService {
      * @param articleId Article ID
      * @returns Article data
      */
-    async getArticle(articleId: number) {
+    async getPost(articleId: number) {
         try {
             const response = await this.api.get(`/articles/${articleId}`);
 

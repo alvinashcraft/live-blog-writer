@@ -669,7 +669,7 @@ export function activate(context: vscode.ExtensionContext) {
                             return;
                         }
                         const devtoService = new DevToService(devtoApiKey);
-                        posts = await devtoService.getArticles(1, 10);
+                        posts = await devtoService.getPosts(1, 10);
                         break;
 
                     default:
@@ -768,7 +768,7 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'devto':
                         const devtoApiKey = await context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
                         const devtoService = new DevToService(devtoApiKey!);
-                        fullPost = await devtoService.getArticle(selected.post.id);
+                        fullPost = await devtoService.getPost(selected.post.id);
                         break;
                 }
             } catch (error) {
