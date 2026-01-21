@@ -299,7 +299,7 @@ export class GhostService {
             if (options?.updatedAt) {
                 postData.posts[0].updated_at = options.updatedAt;
             } else {
-                throw new Error('Ghost requires updated_at timestamp to update a post. Please provide the current updated_at value.');
+                throw new Error('Failed to retrieve current post timestamp required for Ghost update validation. The post may have been modified.');
             }
 
             // Add optional fields

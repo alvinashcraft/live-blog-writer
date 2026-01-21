@@ -116,15 +116,9 @@ export class WordPressService {
                 data.excerpt = options.excerpt;
             }
 
-            // For tags and categories, we would need to map them to IDs
-            // This is a simplified approach for now
-            if (options?.tags && options.tags.length > 0) {
-                // Store tags as meta or handle appropriately
-            }
-
-            if (options?.categories && options.categories.length > 0) {
-                // Store categories as meta or handle appropriately
-            }
+            // Note: WordPress requires tag/category IDs, not names.
+            // Full tag/category support will be implemented in a future version.
+            // For now, these fields are ignored during updates.
 
             const response = await this.api.put(`/posts/${postId}`, data);
             return response.data;

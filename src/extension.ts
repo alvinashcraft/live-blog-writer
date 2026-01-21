@@ -806,6 +806,25 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Convert publishedPostId to the appropriate type for the platform
+ */
+function convertPostIdForPlatform(postId: string | number, platform: string): string | number {
+    switch (platform) {
+        case 'wordpress':
+        case 'devto':
+            // These platforms use numeric IDs
+            return typeof postId === 'number' ? postId : Number(postId);
+        case 'blogger':
+        case 'ghost':
+        case 'substack':
+            // These platforms use string IDs
+            return String(postId);
+        default:
+            return postId;
+    }
+}
+
+/**
  * Get post detail string for display in quick pick
  */
 function getPostDetail(post: any, platform: string): string {
@@ -1338,8 +1357,9 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'wordpress');
         const result = await service.updatePost(
-            Number(postData.publishedPostId), 
+            postId as number, 
             postData.title, 
             postData.content, 
             options
@@ -1401,6 +1421,7 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'blogger');
         const updateOptions: { labels?: string[]; published?: string } = {};
         
         if (labels.length > 0) {
@@ -1412,7 +1433,7 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
         }
         
         const result = await service.updatePost(
-            String(postData.publishedPostId),
+            postId as string,
             postData.title,
             postData.content,
             updateOptions
@@ -1456,8 +1477,9 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'ghost');
         // Need to fetch current post to get updated_at for Ghost
-        const currentPost = await service.getPost(String(postData.publishedPostId));
+        const currentPost = await service.getPost(postId as string);
         
         if (!currentPost.updated_at) {
             vscode.window.showErrorMessage('Failed to get current post timestamp. Ghost requires this to prevent conflicts.');
@@ -1465,7 +1487,7 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
         }
         
         const result = await service.updatePost(
-            String(postData.publishedPostId),
+            postId as string,
             postData.title,
             postData.content,
             {
@@ -1563,7 +1585,8 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
 
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
-        const result = await service.updatePost(Number(postData.publishedPostId), {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'devto');
+        const result = await service.updatePost(postId as number, {
             title: postData.title,
             bodyMarkdown: postData.content || '',
             published,
