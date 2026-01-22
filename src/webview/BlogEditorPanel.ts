@@ -297,7 +297,18 @@ export class BlogEditorPanel {
 
                 case 'blogger':
                     const bloggerToken = await this._context.secrets.get('liveBlogWriter.blogger.token');
-                    const bloggerService = new BloggerService(selectedBlog.id!, bloggerToken!);
+
+                    if (!selectedBlog.id) {
+                        vscode.window.showErrorMessage('Blogger blog ID is not configured.');
+                        break;
+                    }
+
+                    if (!bloggerToken) {
+                        vscode.window.showErrorMessage('Blogger authentication token not found. Please reconnect your Blogger account.');
+                        break;
+                    }
+
+                    const bloggerService = new BloggerService(selectedBlog.id, bloggerToken);
                     fullPost = await bloggerService.getPost(String(postId));
                     break;
 
