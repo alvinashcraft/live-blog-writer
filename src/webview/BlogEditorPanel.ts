@@ -313,8 +313,18 @@ export class BlogEditorPanel {
                     break;
 
                 case 'ghost':
+                    if (!selectedBlog.id) {
+                        vscode.window.showErrorMessage('Ghost blog ID is not configured. Please update your blog settings and try again.');
+                        return;
+                    }
+
                     const ghostApiKey = await this._context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
-                    const ghostService = new GhostService(selectedBlog.id!, ghostApiKey!);
+                    if (!ghostApiKey) {
+                        vscode.window.showErrorMessage('Ghost API key is not configured. Please set the Ghost API key before fetching posts.');
+                        return;
+                    }
+
+                    const ghostService = new GhostService(selectedBlog.id, ghostApiKey);
                     fullPost = await ghostService.getPost(String(postId));
                     break;
 
