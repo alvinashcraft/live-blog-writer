@@ -59,7 +59,7 @@ export class DevToService {
         }
     }
 
-    async updateArticle(articleId: number, update: {
+    async updatePost(articleId: number, update: {
         title?: string;
         bodyMarkdown?: string;
         published?: boolean;
@@ -85,6 +85,56 @@ export class DevToService {
                     cover_image: update.coverImage
                 }
             });
+
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMsg = error.response?.data?.error?.trim() || 
+                                 error.response?.data?.message?.trim() || 
+                                 error.message?.trim() || 
+                                 'Unknown error occurred';
+                throw new Error(`Dev.to API Error: ${errorMsg}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get published articles for the authenticated user
+     * @param page Page number (default: 1)
+     * @param perPage Number of articles per page (default: 10, max: 1000)
+     * @returns Array of articles
+     */
+    async getPosts(page: number = 1, perPage: number = 10) {
+        try {
+            const response = await this.api.get('/articles/me/published', {
+                params: {
+                    page: page,
+                    per_page: perPage
+                }
+            });
+
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const errorMsg = error.response?.data?.error?.trim() || 
+                                 error.response?.data?.message?.trim() || 
+                                 error.message?.trim() || 
+                                 'Unknown error occurred';
+                throw new Error(`Dev.to API Error: ${errorMsg}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a single article by ID
+     * @param articleId Article ID
+     * @returns Article data
+     */
+    async getPost(articleId: number) {
+        try {
+            const response = await this.api.get(`/articles/${articleId}`);
 
             return response.data;
         } catch (error) {

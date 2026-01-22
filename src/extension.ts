@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command to create a new blog post
     let newPostCommand = vscode.commands.registerCommand('live-blog-writer.newPost', () => {
-        BlogEditorPanel.createOrShow(context.extensionUri, draftManager);
+        BlogEditorPanel.createOrShow(context.extensionUri, draftManager, undefined, context);
     });
 
     // Register command to set WordPress password
@@ -306,7 +306,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (selected) {
                 const draftContent = await draftManager.loadDraft(selected.draft.id);
                 if (draftContent) {
-                    BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
+                    BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                 } else {
                     vscode.window.showErrorMessage('Failed to load the selected draft.');
                 }
@@ -372,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
                         if ('draft' in selected && selected.draft) {
                             const draftContent = await draftManager.loadDraft((selected as any).draft.id);
                             if (draftContent) {
-                                BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
+                                BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                             } else {
                                 vscode.window.showErrorMessage('Failed to load the selected draft.');
                             }
@@ -578,6 +578,24 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Register command to edit published posts
+    let editPublishedPostCommand = vscode.commands.registerCommand('live-blog-writer.editPublishedPost', async () => {
+        try {
+            const config = vscode.workspace.getConfiguration('liveBlogWriter');
+            const blogs = config.get<BlogConfig[]>('blogs', []);
+
+            if (blogs.length === 0) {
+                vscode.window.showErrorMessage('No blog configurations found. Please add a blog configuration first.');
+                return;
+            }
+
+            // Open the editor with the post selector modal
+            BlogEditorPanel.createOrShow(context.extensionUri, draftManager, undefined, context, true);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to edit published post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    });
+
     context.subscriptions.push(
         newPostCommand, 
         publishPostCommand, 
@@ -590,8 +608,28 @@ export function activate(context: vscode.ExtensionContext) {
         manageBlogConfigurationsCommand,
         setGhostApiKeyCommand,
         setSubstackApiKeyCommand,
-        setDevToApiKeyCommand
+        setDevToApiKeyCommand,
+        editPublishedPostCommand
     );
+}
+
+/**
+ * Convert publishedPostId to the appropriate type for the platform
+ */
+function convertPostIdForPlatform(postId: string | number, platform: string): string | number {
+    switch (platform) {
+        case 'wordpress':
+        case 'devto':
+            // These platforms use numeric IDs
+            return typeof postId === 'number' ? postId : Number(postId);
+        case 'blogger':
+        case 'ghost':
+        case 'substack':
+            // These platforms use string IDs
+            return String(postId);
+        default:
+            return postId;
+    }
 }
 
 /**
@@ -1013,9 +1051,31 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
         options.categories = postData.categories;
     }
 
-    const result = await service.createPost(postData.title, postData.content, options);
-    
-    vscode.window.showInformationMessage(`Post published successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+    // Check if we're editing an existing post
+    if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'wordpress');
+        const result = await service.updatePost(
+            postId as number, 
+            postData.title, 
+            postData.content, 
+            options
+        );
+        const postUrl = result.link || postData.postUrl;
+        if (postUrl) {
+            const action = await vscode.window.showInformationMessage(
+                `Post updated successfully on ${blogConfig.name}!`,
+                'View Post'
+            );
+            if (action === 'View Post') {
+                vscode.env.openExternal(vscode.Uri.parse(postUrl));
+            }
+        } else {
+            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        }
+    } else {
+        const result = await service.createPost(postData.title, postData.content, options);
+        vscode.window.showInformationMessage(`Post published successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+    }
 }
 
 async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
@@ -1066,10 +1126,42 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
         options.labels = labels;
     }
 
-    const result = await service.createPost(postData.title, postData.content, options);
-    
-    const statusMessage = options.isDraft ? 'saved as draft' : 'published';
-    vscode.window.showInformationMessage(`Post ${statusMessage} successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+    // Check if we're editing an existing post
+    if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'blogger');
+        const updateOptions: { labels?: string[]; published?: string } = {};
+        
+        if (labels.length > 0) {
+            updateOptions.labels = labels;
+        }
+        
+        if (options.published) {
+            updateOptions.published = options.published;
+        }
+        
+        await service.updatePost(
+            postId as string,
+            postData.title,
+            postData.content,
+            updateOptions
+        );
+        const postUrl = postData.postUrl;
+        if (postUrl) {
+            const action = await vscode.window.showInformationMessage(
+                `Post updated successfully on ${blogConfig.name}!`,
+                'View Post'
+            );
+            if (action === 'View Post') {
+                vscode.env.openExternal(vscode.Uri.parse(postUrl));
+            }
+        } else {
+            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        }
+    } else {
+        const result = await service.createPost(postData.title, postData.content, options);
+        const statusMessage = options.isDraft ? 'saved as draft' : 'published';
+        vscode.window.showInformationMessage(`Post ${statusMessage} successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+    }
 }
 
 async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
@@ -1101,11 +1193,33 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
         publishedAt: postData.publishDate
     };
 
-    const result = await service.createPost(postData.title, postData.content, options);
-    
-    vscode.window.showInformationMessage(
-        `Post ${status === 'draft' ? 'saved as draft' : status} successfully to ${blogConfig.name}!\nURL: ${result.url}`
-    );
+    // Check if we're editing an existing post
+    if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'ghost');
+        // Need to fetch current post to get updated_at for Ghost
+        const currentPost = await service.getPost(postId as string);
+        
+        if (!currentPost.updated_at) {
+            vscode.window.showErrorMessage('Failed to get current post timestamp. Ghost requires this to prevent conflicts.');
+            return;
+        }
+        
+        const result = await service.updatePost(
+            postId as string,
+            postData.title,
+            postData.content,
+            {
+                ...options,
+                updatedAt: currentPost.updated_at
+            }
+        );
+        vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!\nURL: ${result.url}`);
+    } else {
+        const result = await service.createPost(postData.title, postData.content, options);
+        vscode.window.showInformationMessage(
+            `Post ${status === 'draft' ? 'saved as draft' : status} successfully to ${blogConfig.name}!\nURL: ${result.url}`
+        );
+    }
 }
 
 async function publishToSubstack(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
@@ -1187,18 +1301,35 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
 
     const published = postData.status === 'publish';
 
-    const result = await service.createArticle({
-        title: postData.title,
-        bodyMarkdown: postData.content || '',
-        published,
-        tags: uniqueTags.length > 0 ? uniqueTags : undefined,
-        description: postData.excerpt
-    });
+    // Check if we're editing an existing post
+    if (postData.publishedPostId && postData.isEditDraft) {
+        const postId = convertPostIdForPlatform(postData.publishedPostId, 'devto');
+        const result = await service.updatePost(postId as number, {
+            title: postData.title,
+            bodyMarkdown: postData.content || '',
+            published,
+            tags: uniqueTags.length > 0 ? uniqueTags : undefined,
+            description: postData.excerpt
+        });
 
-    const url = result?.url || result?.canonical_url;
-    vscode.window.showInformationMessage(
-        `Post ${published ? 'published' : 'saved as draft'} successfully to ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
-    );
+        const url = result?.url || result?.canonical_url;
+        vscode.window.showInformationMessage(
+            `Post updated successfully on ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
+        );
+    } else {
+        const result = await service.createArticle({
+            title: postData.title,
+            bodyMarkdown: postData.content || '',
+            published,
+            tags: uniqueTags.length > 0 ? uniqueTags : undefined,
+            description: postData.excerpt
+        });
+
+        const url = result?.url || result?.canonical_url;
+        vscode.window.showInformationMessage(
+            `Post ${published ? 'published' : 'saved as draft'} successfully to ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
+        );
+    }
 }
 
 async function getPostDataForPlatform(postData: any, platform: BlogConfig['platform'] | string): Promise<any> {

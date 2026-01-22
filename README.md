@@ -29,6 +29,7 @@ Add a new blog from WordPress, Blogger, Ghost, Substack, or Dev.to:
 - **Visual Blog Management**: Intuitive webview interface for managing all blog connections
 - **Default Blog**: Set a default blog for quick publishing
 - **Blog Selection**: Choose which blog to publish to directly from the editor
+- **Edit Published Posts**: Fetch and edit posts that are already published on your blog
 - **Metadata Management**: Easy-to-use left panel for managing post details:
   - Blog selection dropdown
   - Post title
@@ -114,6 +115,7 @@ For detailed platform-specific setup instructions, see:
 - [Multi-Blog Platform Guide](docs/MULTI_BLOG_GUIDE.md)
 - [Markdown Editor Guide](docs/MARKDOWN_EDITOR.md)
 - [Dev.to Setup Guide](docs/DEVTO_SETUP.md)
+- [Editing Published Posts Guide](docs/EDITING_PUBLISHED_POSTS.md)
 - [Migration Guide](docs/MIGRATION_GUIDE.md) (for existing users)
 
 ### Legacy Configuration (Deprecated)
@@ -182,6 +184,31 @@ New settings format:
    - If no blog is selected, you'll be prompted to choose one
 1. Or use the Command Palette: "Live Blog Writer: Publish Post"
 
+### Editing Published Posts
+
+You can edit posts that are already published on your blog:
+
+**Method 1: Using the Command Palette**
+
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+1. Type "Live Blog Writer: Edit Published Post" and press Enter
+1. A post selector popup appears in the editor
+1. Select your blog from the dropdown
+1. Click on a post to select it, then click "Load Post"
+1. Make your changes in the editor
+1. Click "Publish Post" to update the live post
+1. Click "View Post" in the success message to see your changes
+
+**Method 2: From the Blog Editor**
+
+1. Open a new blog post or use an existing editor
+1. Click the "Load Published Post" button in the toolbar
+1. Follow the same steps to select and load a post
+
+**Supported platforms:** WordPress, Blogger, Ghost, and Dev.to (Substack is read-only)
+
+See [Editing Published Posts Guide](docs/EDITING_PUBLISHED_POSTS.md) for detailed information.
+
 ## Features in Detail
 
 ### WYSIWYG Editor
@@ -230,8 +257,10 @@ Your work is automatically saved every 30 seconds, preventing data loss.
 - Image uploads must be handled separately (external image links work)
 - Substack email/password authentication may not work due to API restrictions (use cookie-based auth instead)
 - Substack supports limited HTML conversion (paragraphs and headings primarily)
-- Dev.to update workflow (updating existing articles) is not implemented yet
+- Substack does not support updating published posts via API
+- Dev.to update workflow (updating existing articles) is now implemented
 - Dev.to supports a maximum of 4 tags (this extension trims combined tags/categories to 4)
+- Edit published posts feature fetches the 10 most recent posts (older posts not yet accessible)
 
 ## Troubleshooting
 
@@ -333,12 +362,14 @@ See [LICENSE](LICENSE) file for details.
 - [x] Visual blog connection management interface
 - [x] Default blog selection
 - [x] Draft management (list and edit existing drafts)
+- [x] Edit published posts feature
 - [ ] Support for featured images
 - [ ] Direct image upload to blog platforms
 - [ ] Support for custom post types
 - [ ] Post scheduling
-- [ ] Additional blog platform support (Dev.to, Hashnode, etc.)
-- [ ] Markdown support alongside WYSIWYG
+- [ ] Additional blog platform support (Hashnode, Medium, etc.)
+- [ ] Search and filter published posts for editing
+- [ ] Pagination for fetching more than 10 posts
 
 ## Support
 

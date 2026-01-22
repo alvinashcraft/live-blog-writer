@@ -84,21 +84,40 @@ export class BloggerService {
      * @param postId Post ID
      * @param title Post title
      * @param content Post content (HTML)
+     * @param options Additional options (labels, published date)
      * @returns Updated post data
      */
-    async updatePost(postId: string, title: string, content: string) {
+    async updatePost(
+        postId: string, 
+        title: string, 
+        content: string,
+        options?: {
+            labels?: string[];
+            published?: string;
+        }
+    ) {
         try {
+            const postData: any = {
+                kind: 'blogger#post',
+                id: postId,
+                blog: {
+                    id: this.blogId
+                },
+                title: title,
+                content: content
+            };
+
+            if (options?.labels && options.labels.length > 0) {
+                postData.labels = options.labels;
+            }
+
+            if (options?.published) {
+                postData.published = options.published;
+            }
+
             const response = await this.api.put(
                 `/blogs/${this.blogId}/posts/${postId}`,
-                {
-                    kind: 'blogger#post',
-                    id: postId,
-                    blog: {
-                        id: this.blogId
-                    },
-                    title: title,
-                    content: content
-                }
+                postData
             );
 
             return response.data;
@@ -121,12 +140,33 @@ export class BloggerService {
                 `/blogs/${this.blogId}/posts`,
                 {
                     params: {
-                        maxResults: maxResults
+                        maxResults: maxResults,
+                        status: 'live'
                     }
                 }
             );
 
             return response.data.items || [];
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Blogger API Error: ${error.response?.data?.error?.message || error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a single post by ID
+     * @param postId Post ID
+     * @returns Post data
+     */
+    async getPost(postId: string) {
+        try {
+            const response = await this.api.get(
+                `/blogs/${this.blogId}/posts/${postId}`
+            );
+
+            return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(`Blogger API Error: ${error.response?.data?.error?.message || error.message}`);
