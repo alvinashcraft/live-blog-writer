@@ -279,7 +279,11 @@ export class BlogEditorPanel {
             switch (selectedBlog.platform) {
                 case 'wordpress':
                     const wpPassword = await this._context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
-                    const wpService = new WordPressService(selectedBlog.id!, selectedBlog.username!, wpPassword!);
+                    if (!wpPassword || !selectedBlog.id || !selectedBlog.username) {
+                        vscode.window.showErrorMessage('WordPress credentials incomplete. Please configure WordPress and try again.');
+                        return;
+                    }
+                    const wpService = new WordPressService(selectedBlog.id, selectedBlog.username, wpPassword);
                     fullPost = await wpService.getPost(Number(postId));
                     
                     // Fetch tag and category names
@@ -329,6 +333,11 @@ export class BlogEditorPanel {
                     break;
 
                 case 'substack':
+                    if (!selectedBlog.id) {
+                        vscode.window.showErrorMessage('Substack hostname not configured. Please update your blog settings and try again.');
+                        return;
+                    }
+                    
                     const substackCookie = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'apikey'));
                     const substackEmail = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'email'));
                     const substackPassword = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'password'));
@@ -336,11 +345,14 @@ export class BlogEditorPanel {
                     let substackAuth: any;
                     if (substackCookie) {
                         substackAuth = { connectSid: substackCookie };
-                    } else {
+                    } else if (substackEmail && substackPassword) {
                         substackAuth = { email: substackEmail, password: substackPassword };
+                    } else {
+                        vscode.window.showErrorMessage('Substack credentials not configured. Please set up authentication and try again.');
+                        return;
                     }
                     
-                    const substackService = new SubstackService(substackAuth, selectedBlog.id!);
+                    const substackService = new SubstackService(substackAuth, selectedBlog.id);
                     fullPost = await substackService.getPost(Number(postId));
                     break;
 
