@@ -633,36 +633,6 @@ function convertPostIdForPlatform(postId: string | number, platform: string): st
 }
 
 /**
- * Get post detail string for display in quick pick
- */
-function getPostDetail(post: any, platform: string): string {
-    switch (platform) {
-        case 'wordpress':
-            const wpDate = post.date ? new Date(post.date).toLocaleDateString() : '';
-            return `Published: ${wpDate}`;
-        
-        case 'blogger':
-            const bloggerDate = post.published ? new Date(post.published).toLocaleDateString() : '';
-            return `Published: ${bloggerDate}`;
-        
-        case 'ghost':
-            const ghostDate = post.published_at ? new Date(post.published_at).toLocaleDateString() : '';
-            return `Published: ${ghostDate}`;
-        
-        case 'substack':
-            const substackDate = post.post_date ? new Date(post.post_date).toLocaleDateString() : '';
-            return `Published: ${substackDate}`;
-        
-        case 'devto':
-            const devtoDate = post.published_at ? new Date(post.published_at).toLocaleDateString() : '';
-            return `Published: ${devtoDate}`;
-        
-        default:
-            return '';
-    }
-}
-
-/**
  * Convert a post from a platform to draft format
  */
 function convertPostToDraft(post: any, platform: string, blogName: string): any {
