@@ -325,7 +325,11 @@ export class BlogEditorPanel {
 
                 case 'devto':
                     const devtoApiKey = await this._context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
-                    const devtoService = new DevToService(devtoApiKey!);
+                    if (!devtoApiKey) {
+                        vscode.window.showErrorMessage(`Dev.to API key not found for blog "${selectedBlog.name}". Please configure the credentials and try again.`);
+                        return;
+                    }
+                    const devtoService = new DevToService(devtoApiKey);
                     fullPost = await devtoService.getPost(Number(postId));
                     break;
             }
