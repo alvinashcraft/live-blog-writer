@@ -40,20 +40,23 @@ All platform services now have consistent APIs:
 Command: `live-blog-writer.editPublishedPost`
 
 **Workflow:**
-1. User selects blog from configured list
-2. Extension fetches 10 most recent published posts
-3. Posts with local edits show `$(edit)` icon and "(Edit in progress)" label
-4. User selects post to edit
-5. Post loads in editor with all content and metadata
-6. Changes auto-save to local draft (marked as `isEditDraft: true`)
-7. Publish updates the live post instead of creating new one
+1. User runs "Edit Published Post" command or clicks "Load Published Post" button
+2. A post selector popup appears in the editor
+3. User selects blog from dropdown
+4. Extension fetches 10 most recent published posts
+5. User clicks on a post and clicks "Load Post"
+6. Post loads in editor with all content and metadata (including tags/categories)
+7. Changes auto-save to local draft
+8. Publish updates the live post instead of creating new one
+9. Success message includes "View Post" button to open the updated post
 
-### 4. Intelligent Draft Management
+### 4. Webview-Based Post Selector
 
-- Detects if a post is already being edited
-- Resumes existing edit sessions
-- Prevents duplicate drafts
-- Tracks which blog the post belongs to
+- Modal popup in the blog editor for selecting posts to edit
+- Blog dropdown to switch between configured blogs
+- Post list with title and date
+- "Load Published Post" button in editor toolbar for easy access
+- CSP-compliant event handling for VS Code webviews
 
 ### 5. Platform-Specific ID Handling
 
@@ -98,11 +101,13 @@ Created detailed guide at `docs/EDITING_PUBLISHED_POSTS.md` covering:
 
 ### New Files
 - `docs/EDITING_PUBLISHED_POSTS.md` - User guide
+- `docs/EDIT_FEATURE_SUMMARY.md` - Implementation summary
 
 ### Modified Files
 - `src/extension.ts` - New command and helper functions
+- `src/webview/BlogEditorPanel.ts` - Post selector modal UI and message handlers
 - `src/services/DraftManager.ts` - Extended interfaces
-- `src/services/WordPressService.ts` - Added getPosts, getPost, enhanced updatePost
+- `src/services/WordPressService.ts` - Added getPosts, getPost, getTagNames, getCategoryNames, enhanced updatePost
 - `src/services/BloggerService.ts` - Added getPost, enhanced updatePost
 - `src/services/GhostService.ts` - Added getPosts, getPost, updatePost
 - `src/services/SubstackService.ts` - Added getPosts, getPost
@@ -156,9 +161,11 @@ await service.updatePost(postId, title, content, {
 
 ### 4. User Experience
 
-- Edit-in-progress indicator prevents confusion
+- Webview-based post selector popup for intuitive selection
+- "Load Published Post" button in editor toolbar
 - Auto-save preserves work
 - Clear success/error messages
+- "View Post" button to open updated post in browser
 - Familiar workflow (same as creating new posts)
 
 ## Code Quality

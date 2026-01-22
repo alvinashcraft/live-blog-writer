@@ -171,4 +171,50 @@ export class WordPressService {
             throw error;
         }
     }
+
+    /**
+     * Get tag names by IDs
+     * @param tagIds Array of tag IDs
+     * @returns Array of tag names
+     */
+    async getTagNames(tagIds: number[]): Promise<string[]> {
+        if (!tagIds || tagIds.length === 0) {
+            return [];
+        }
+        try {
+            const response = await this.api.get('/tags', {
+                params: {
+                    include: tagIds.join(','),
+                    per_page: 100
+                }
+            });
+            return response.data.map((tag: any) => tag.name);
+        } catch (error) {
+            console.error('Failed to fetch tag names:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get category names by IDs
+     * @param categoryIds Array of category IDs
+     * @returns Array of category names
+     */
+    async getCategoryNames(categoryIds: number[]): Promise<string[]> {
+        if (!categoryIds || categoryIds.length === 0) {
+            return [];
+        }
+        try {
+            const response = await this.api.get('/categories', {
+                params: {
+                    include: categoryIds.join(','),
+                    per_page: 100
+                }
+            });
+            return response.data.map((cat: any) => cat.name);
+        } catch (error) {
+            console.error('Failed to fetch category names:', error);
+            return [];
+        }
+    }
 }

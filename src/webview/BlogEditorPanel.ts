@@ -1,5 +1,15 @@
 import * as vscode from 'vscode';
 import { DraftManager, DraftContent } from '../services/DraftManager';
+import { WordPressService } from '../services/WordPressService';
+import { BloggerService } from '../services/BloggerService';
+import { GhostService } from '../services/GhostService';
+import { SubstackService } from '../services/SubstackService';
+import { DevToService } from '../services/DevToService';
+
+// Helper function to get the secret key for a blog
+function getSecretKey(platform: string, blogName: string, credentialType: string): string {
+    return `liveBlogWriter.${platform}.${blogName}.${credentialType}`;
+}
 
 export class BlogEditorPanel {
     public static currentPanel: BlogEditorPanel | undefined;
@@ -8,6 +18,7 @@ export class BlogEditorPanel {
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     private readonly _draftManager: DraftManager;
+    private readonly _context: vscode.ExtensionContext | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _postData: { 
         title: string; 
@@ -19,11 +30,16 @@ export class BlogEditorPanel {
         excerpt?: string;
         status?: string;
         selectedBlog?: string;
+        publishedPostId?: string | number;
+        blogName?: string;
+        isEditDraft?: boolean;
+        postUrl?: string;
     } | null = null;
     private _currentDraftId: string | undefined;
     private _autoSaveInterval: NodeJS.Timeout | undefined;
+    private _showPostSelectorOnLoad: boolean = false;
 
-    public static createOrShow(extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent) {
+    public static createOrShow(extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent, context?: vscode.ExtensionContext, showPostSelector?: boolean) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -34,6 +50,10 @@ export class BlogEditorPanel {
             // Load draft content if provided
             if (draftContent) {
                 BlogEditorPanel.currentPanel.loadDraftContent(draftContent);
+            }
+            // Show post selector if requested
+            if (showPostSelector) {
+                BlogEditorPanel.currentPanel._panel.webview.postMessage({ command: 'showPostSelector' });
             }
             return;
         }
@@ -50,13 +70,15 @@ export class BlogEditorPanel {
             }
         );
 
-        BlogEditorPanel.currentPanel = new BlogEditorPanel(panel, extensionUri, draftManager, draftContent);
+        BlogEditorPanel.currentPanel = new BlogEditorPanel(panel, extensionUri, draftManager, draftContent, context, showPostSelector);
     }
 
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent) {
+    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, draftManager?: DraftManager, draftContent?: DraftContent, context?: vscode.ExtensionContext, showPostSelector?: boolean) {
         this._panel = panel;
         this._extensionUri = extensionUri;
         this._draftManager = draftManager || new DraftManager();
+        this._context = context;
+        this._showPostSelectorOnLoad = showPostSelector || false;
 
         // Load draft content if provided
         if (draftContent) {
@@ -87,7 +109,11 @@ export class BlogEditorPanel {
                             categories: message.categories,
                             excerpt: message.excerpt,
                             status: message.status,
-                            selectedBlog: message.selectedBlog
+                            selectedBlog: message.selectedBlog,
+                            publishedPostId: message.publishedPostId,
+                            isEditDraft: message.isEditDraft,
+                            blogName: message.blogName,
+                            postUrl: message.postUrl
                         };
                         console.log('Post data saved:', this._postData);
                         return;
@@ -101,11 +127,319 @@ export class BlogEditorPanel {
                         console.log('Showing info message:', message.text);
                         vscode.window.showInformationMessage(message.text);
                         return;
+                    case 'fetchPostsForBlog':
+                        // Fetch posts for a specific blog
+                        this.handleFetchPosts(message.blogName);
+                        return;
+                    case 'loadPublishedPost':
+                        // Load a specific published post into the editor
+                        this.handleLoadPublishedPost(message.blogName, message.postId);
+                        return;
                 }
             },
             null,
             this._disposables
         );
+    }
+
+    private async handleFetchPosts(blogName: string) {
+        if (!this._context) {
+            this._panel.webview.postMessage({ 
+                command: 'postsLoaded', 
+                blogName, 
+                posts: [], 
+                error: 'Extension context not available' 
+            });
+            return;
+        }
+
+        const config = vscode.workspace.getConfiguration('liveBlogWriter');
+        const blogs = config.get<any[]>('blogs', []);
+        const selectedBlog = blogs.find(b => b.name === blogName);
+
+        if (!selectedBlog) {
+            this._panel.webview.postMessage({ 
+                command: 'postsLoaded', 
+                blogName, 
+                posts: [], 
+                error: 'Blog not found' 
+            });
+            return;
+        }
+
+        try {
+            let posts: any[] = [];
+            switch (selectedBlog.platform) {
+                case 'wordpress':
+                    const wpPassword = await this._context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
+                    if (!wpPassword || !selectedBlog.id || !selectedBlog.username) {
+                        throw new Error('WordPress credentials incomplete');
+                    }
+                    const wpService = new WordPressService(selectedBlog.id, selectedBlog.username, wpPassword);
+                    posts = await wpService.getPosts(1, 10);
+                    break;
+
+                case 'blogger':
+                    const bloggerToken = await this._context.secrets.get('liveBlogWriter.blogger.token');
+                    if (!bloggerToken || !selectedBlog.id) {
+                        throw new Error('Blogger authentication required');
+                    }
+                    const bloggerService = new BloggerService(selectedBlog.id, bloggerToken);
+                    posts = await bloggerService.getPosts(10);
+                    break;
+
+                case 'ghost':
+                    const ghostApiKey = await this._context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
+                    if (!ghostApiKey || !selectedBlog.id) {
+                        throw new Error('Ghost API key not configured');
+                    }
+                    const ghostService = new GhostService(selectedBlog.id, ghostApiKey);
+                    posts = await ghostService.getPosts(10);
+                    break;
+
+                case 'substack':
+                    const substackCookie = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'apikey'));
+                    const substackEmail = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'email'));
+                    const substackPassword = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'password'));
+                    
+                    if (!selectedBlog.id) {
+                        throw new Error('Substack hostname not configured');
+                    }
+                    
+                    let substackAuth: any;
+                    if (substackCookie) {
+                        substackAuth = { connectSid: substackCookie };
+                    } else if (substackEmail && substackPassword) {
+                        substackAuth = { email: substackEmail, password: substackPassword };
+                    } else {
+                        throw new Error('Substack credentials not configured');
+                    }
+                    
+                    const substackService = new SubstackService(substackAuth, selectedBlog.id);
+                    posts = await substackService.getPosts(10);
+                    break;
+
+                case 'devto':
+                    const devtoApiKey = await this._context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
+                    if (!devtoApiKey) {
+                        throw new Error('Dev.to API key not configured');
+                    }
+                    const devtoService = new DevToService(devtoApiKey);
+                    posts = await devtoService.getPosts(1, 10);
+                    break;
+
+                default:
+                    throw new Error(`Platform ${selectedBlog.platform} not supported`);
+            }
+
+            // Normalize posts for the UI
+            const normalizedPosts = posts.map((post: any) => ({
+                id: post.id,
+                title: post.title?.rendered || post.title || 'Untitled',
+                date: post.date || post.published || post.published_at || post.post_date || '',
+                status: post.status || 'published'
+            }));
+
+            this._panel.webview.postMessage({ 
+                command: 'postsLoaded', 
+                blogName, 
+                posts: normalizedPosts,
+                platform: selectedBlog.platform
+            });
+        } catch (error) {
+            this._panel.webview.postMessage({ 
+                command: 'postsLoaded', 
+                blogName, 
+                posts: [], 
+                error: error instanceof Error ? error.message : 'Failed to fetch posts' 
+            });
+        }
+    }
+
+    private async handleLoadPublishedPost(blogName: string, postId: string | number) {
+        if (!this._context) {
+            vscode.window.showErrorMessage('Extension context not available');
+            return;
+        }
+
+        const config = vscode.workspace.getConfiguration('liveBlogWriter');
+        const blogs = config.get<any[]>('blogs', []);
+        const selectedBlog = blogs.find(b => b.name === blogName);
+
+        if (!selectedBlog) {
+            vscode.window.showErrorMessage('Blog not found');
+            return;
+        }
+
+        try {
+            let fullPost: any;
+            let tagNames: string[] = [];
+            let categoryNames: string[] = [];
+            
+            switch (selectedBlog.platform) {
+                case 'wordpress':
+                    const wpPassword = await this._context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
+                    const wpService = new WordPressService(selectedBlog.id!, selectedBlog.username!, wpPassword!);
+                    fullPost = await wpService.getPost(Number(postId));
+                    
+                    // Fetch tag and category names
+                    if (fullPost.tags && fullPost.tags.length > 0) {
+                        tagNames = await wpService.getTagNames(fullPost.tags);
+                    }
+                    if (fullPost.categories && fullPost.categories.length > 0) {
+                        categoryNames = await wpService.getCategoryNames(fullPost.categories);
+                    }
+                    
+                    // Attach names to the post for conversion
+                    fullPost._tagNames = tagNames;
+                    fullPost._categoryNames = categoryNames;
+                    break;
+
+                case 'blogger':
+                    const bloggerToken = await this._context.secrets.get('liveBlogWriter.blogger.token');
+                    const bloggerService = new BloggerService(selectedBlog.id!, bloggerToken!);
+                    fullPost = await bloggerService.getPost(String(postId));
+                    break;
+
+                case 'ghost':
+                    const ghostApiKey = await this._context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
+                    const ghostService = new GhostService(selectedBlog.id!, ghostApiKey!);
+                    fullPost = await ghostService.getPost(String(postId));
+                    break;
+
+                case 'substack':
+                    const substackCookie = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'apikey'));
+                    const substackEmail = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'email'));
+                    const substackPassword = await this._context.secrets.get(getSecretKey('substack', selectedBlog.name, 'password'));
+                    
+                    let substackAuth: any;
+                    if (substackCookie) {
+                        substackAuth = { connectSid: substackCookie };
+                    } else {
+                        substackAuth = { email: substackEmail, password: substackPassword };
+                    }
+                    
+                    const substackService = new SubstackService(substackAuth, selectedBlog.id!);
+                    fullPost = await substackService.getPost(Number(postId));
+                    break;
+
+                case 'devto':
+                    const devtoApiKey = await this._context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
+                    const devtoService = new DevToService(devtoApiKey!);
+                    fullPost = await devtoService.getPost(Number(postId));
+                    break;
+            }
+
+            // Convert post to draft format
+            const draftData = this.convertPostToDraft(fullPost, selectedBlog.platform, blogName);
+            
+            // Add the post URL if available
+            if (fullPost.link) {
+                draftData.postUrl = fullPost.link;
+            } else if (fullPost.url) {
+                draftData.postUrl = fullPost.url;
+            } else if (fullPost.canonical_url) {
+                draftData.postUrl = fullPost.canonical_url;
+            }
+            
+            // Send to webview
+            this._panel.webview.postMessage({ 
+                command: 'loadDraftData', 
+                draftData 
+            });
+            
+            // Reset the load button
+            this._panel.webview.postMessage({ 
+                command: 'resetLoadButton'
+            });
+
+            // Update internal state
+            this._postData = draftData;
+            this._currentDraftId = undefined; // New edit, no draft ID yet
+            this._panel.title = `Blog Editor - ${draftData.title || 'Untitled'}`;
+
+            vscode.window.showInformationMessage(`Loaded: ${draftData.title}`);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to load post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    private convertPostToDraft(post: any, platform: string, blogName: string): any {
+        const baseContent: any = {
+            publishedPostId: post.id,
+            blogName: blogName,
+            isEditDraft: true,
+            selectedBlog: blogName
+        };
+
+        switch (platform) {
+            case 'wordpress':
+                return {
+                    ...baseContent,
+                    title: post.title?.rendered || '',
+                    content: post.content?.rendered || '',
+                    contentFormat: 'html',
+                    excerpt: post.excerpt?.rendered || '',
+                    status: post.status || 'publish',
+                    publishDate: post.date || '',
+                    tags: post._tagNames || [],
+                    categories: post._categoryNames || []
+                };
+            
+            case 'blogger':
+                return {
+                    ...baseContent,
+                    title: post.title || '',
+                    content: post.content || '',
+                    contentFormat: 'html',
+                    status: 'publish',
+                    publishDate: post.published || '',
+                    tags: post.labels || [],
+                    categories: []
+                };
+            
+            case 'ghost':
+                return {
+                    ...baseContent,
+                    title: post.title || '',
+                    content: post.html || '',
+                    contentFormat: 'html',
+                    excerpt: post.custom_excerpt || '',
+                    status: post.status || 'published',
+                    publishDate: post.published_at || '',
+                    tags: post.tags?.map((t: any) => t.name) || [],
+                    categories: []
+                };
+            
+            case 'substack':
+                return {
+                    ...baseContent,
+                    title: post.title || '',
+                    content: post.body_html || '',
+                    contentFormat: 'html',
+                    excerpt: post.subtitle || '',
+                    status: 'publish',
+                    publishDate: post.post_date || '',
+                    tags: [],
+                    categories: []
+                };
+            
+            case 'devto':
+                return {
+                    ...baseContent,
+                    title: post.title || '',
+                    content: post.body_markdown || '',
+                    contentFormat: 'markdown',
+                    excerpt: post.description || '',
+                    status: post.published ? 'publish' : 'draft',
+                    publishDate: post.published_at || '',
+                    tags: post.tag_list || [],
+                    categories: []
+                };
+            
+            default:
+                return baseContent;
+        }
     }
 
     public async getPostData(): Promise<{ 
@@ -400,6 +734,117 @@ export class BlogEditorPanel {
         button.secondary:hover {
             background-color: var(--vscode-button-secondaryHoverBackground);
         }
+        /* Modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 6px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--vscode-foreground);
+            padding: 0;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: var(--vscode-errorForeground);
+        }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+        .post-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .post-list-item {
+            padding: 12px 15px;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .post-list-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        .post-list-item.selected {
+            background-color: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+        }
+        .post-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .post-date {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: var(--vscode-descriptionForeground);
+        }
+        .error-message {
+            color: var(--vscode-errorForeground);
+            padding: 10px;
+            text-align: center;
+        }
+        .no-posts {
+            color: var(--vscode-descriptionForeground);
+            padding: 20px;
+            text-align: center;
+        }
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--vscode-panel-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -481,8 +926,34 @@ export class BlogEditorPanel {
                 </div>
             </div>
             <div class="button-container">
+                <button id="loadPublishedBtn" class="secondary"><i class="fas fa-download"></i> Load Published Post</button>
                 <button id="saveBtn" class="secondary">Save Draft</button>
                 <button id="publishBtn">Publish Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Selector Modal -->
+    <div id="postSelectorModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Load Published Post</h3>
+                <button class="modal-close" id="modalCloseBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modalBlogSelect">Select Blog</label>
+                    <select id="modalBlogSelect">
+                        <option value="">-- Select a blog --</option>
+                    </select>
+                </div>
+                <div id="postListContainer">
+                    <div class="no-posts">Select a blog to load its published posts</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" id="modalCancelBtn">Cancel</button>
+                <button id="loadSelectedPostBtn" disabled>Load Post</button>
             </div>
         </div>
     </div>
@@ -492,11 +963,18 @@ export class BlogEditorPanel {
     <script nonce="${nonce}">
         ${draftDataScript}
         ${blogConfigsScript}
+        const showPostSelectorOnLoad = ${this._showPostSelectorOnLoad};
         const vscode = acquireVsCodeApi();
         
         // Initialize tag and category arrays
         let tags = [];
         let categories = [];
+
+        // Edit mode tracking
+        let publishedPostId = null;
+        let isEditDraft = false;
+        let editBlogName = null;
+        let postUrl = null;
 
         // Editor mode
         let contentFormat = 'html';
@@ -717,7 +1195,11 @@ export class BlogEditorPanel {
                 categories: categories,
                 excerpt: excerpt || undefined,
                 status: status,
-                selectedBlog: selectedBlog || undefined
+                selectedBlog: selectedBlog || undefined,
+                publishedPostId: publishedPostId || undefined,
+                isEditDraft: isEditDraft || false,
+                blogName: editBlogName || undefined,
+                postUrl: postUrl || undefined
             });
         }
 
@@ -761,6 +1243,179 @@ export class BlogEditorPanel {
                 case 'getPostData':
                     savePostData();
                     break;
+                case 'showPostSelector':
+                    openPostSelector();
+                    break;
+                case 'postsLoaded':
+                    handlePostsLoaded(message);
+                    break;
+                case 'loadDraftData':
+                    loadDraftData(message.draftData);
+                    closePostSelector();
+                    break;
+                case 'resetLoadButton':
+                    const loadBtn = document.getElementById('loadSelectedPostBtn');
+                    loadBtn.textContent = 'Load Post';
+                    loadBtn.disabled = true;
+                    break;
+            }
+        });
+
+        // Post selector modal state
+        let selectedPostId = null;
+        let selectedBlogForModal = null;
+        let loadedPosts = [];
+
+        // Open post selector modal
+        function openPostSelector() {
+            const modal = document.getElementById('postSelectorModal');
+            const modalBlogSelect = document.getElementById('modalBlogSelect');
+            
+            // Populate blog dropdown
+            modalBlogSelect.innerHTML = '<option value="">-- Select a blog --</option>';
+            if (window.blogConfigs && window.blogConfigs.length > 0) {
+                window.blogConfigs.forEach(blog => {
+                    const option = document.createElement('option');
+                    option.value = blog.name;
+                    option.textContent = \`\${blog.name} (\${blog.platform})\`;
+                    modalBlogSelect.appendChild(option);
+                });
+            }
+            
+            // Reset state
+            selectedPostId = null;
+            selectedBlogForModal = null;
+            loadedPosts = [];
+            document.getElementById('postListContainer').innerHTML = '<div class="no-posts">Select a blog to load its published posts</div>';
+            document.getElementById('loadSelectedPostBtn').disabled = true;
+            
+            modal.classList.add('active');
+        }
+
+        window.openPostSelector = openPostSelector;
+
+        // Close post selector modal
+        function closePostSelector() {
+            document.getElementById('postSelectorModal').classList.remove('active');
+        }
+
+        window.closePostSelector = closePostSelector;
+
+        // Handle blog selection in modal
+        document.getElementById('modalBlogSelect').addEventListener('change', (e) => {
+            const blogName = e.target.value;
+            selectedBlogForModal = blogName;
+            selectedPostId = null;
+            document.getElementById('loadSelectedPostBtn').disabled = true;
+            
+            if (!blogName) {
+                document.getElementById('postListContainer').innerHTML = '<div class="no-posts">Select a blog to load its published posts</div>';
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('postListContainer').innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading posts...</div>';
+            
+            // Request posts from extension
+            vscode.postMessage({
+                command: 'fetchPostsForBlog',
+                blogName: blogName
+            });
+        });
+
+        // Handle posts loaded from extension
+        function handlePostsLoaded(message) {
+            const container = document.getElementById('postListContainer');
+            
+            if (message.error) {
+                container.innerHTML = \`<div class="error-message">\${message.error}</div>\`;
+                return;
+            }
+            
+            if (!message.posts || message.posts.length === 0) {
+                container.innerHTML = '<div class="no-posts">No published posts found</div>';
+                return;
+            }
+            
+            loadedPosts = message.posts;
+            
+            const listHtml = '<ul class="post-list">' + message.posts.map(post => {
+                const dateStr = post.date ? new Date(post.date).toLocaleDateString() : '';
+                return \`<li class="post-list-item" data-id="\${post.id}">
+                    <div class="post-title">\${escapeHtml(post.title)}</div>
+                    <div class="post-date">\${dateStr}</div>
+                </li>\`;
+            }).join('') + '</ul>';
+            
+            container.innerHTML = listHtml;
+            
+            // Add click listeners to post items
+            container.querySelectorAll('.post-list-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectPost(item.getAttribute('data-id'));
+                });
+            });
+        }
+
+        // Escape HTML for safe display
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Select a post in the list
+        function selectPost(postId) {
+            selectedPostId = postId;
+            
+            // Update UI
+            document.querySelectorAll('.post-list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            const selectedItem = document.querySelector(\`.post-list-item[data-id="\${postId}"]\`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            document.getElementById('loadSelectedPostBtn').disabled = false;
+        }
+
+        window.selectPost = selectPost;
+
+        // Handle load selected post button
+        document.getElementById('loadSelectedPostBtn').addEventListener('click', () => {
+            if (!selectedPostId || !selectedBlogForModal) return;
+            
+            // Show loading state
+            document.getElementById('loadSelectedPostBtn').disabled = true;
+            document.getElementById('loadSelectedPostBtn').textContent = 'Loading...';
+            
+            vscode.postMessage({
+                command: 'loadPublishedPost',
+                blogName: selectedBlogForModal,
+                postId: selectedPostId
+            });
+        });
+
+        // Handle load published post button
+        document.getElementById('loadPublishedBtn').addEventListener('click', () => {
+            openPostSelector();
+        });
+
+        // Handle modal close button
+        document.getElementById('modalCloseBtn').addEventListener('click', () => {
+            closePostSelector();
+        });
+
+        // Handle modal cancel button
+        document.getElementById('modalCancelBtn').addEventListener('click', () => {
+            closePostSelector();
+        });
+
+        // Handle clicking outside modal to close
+        document.getElementById('postSelectorModal').addEventListener('click', (e) => {
+            if (e.target.id === 'postSelectorModal') {
+                closePostSelector();
             }
         });
 
@@ -791,6 +1446,12 @@ export class BlogEditorPanel {
             categories = draftData.categories || [];
             renderCategories();
             
+            // Load edit mode fields
+            publishedPostId = draftData.publishedPostId || null;
+            isEditDraft = draftData.isEditDraft || false;
+            editBlogName = draftData.blogName || null;
+            postUrl = draftData.postUrl || null;
+            
             setActiveContent(draftData.content || '');
         }
 
@@ -805,6 +1466,13 @@ export class BlogEditorPanel {
             // Default content format for new drafts
             const initialFormat = document.getElementById('contentFormat').value || 'html';
             applyContentFormat(initialFormat);
+        }
+
+        // Auto-open post selector if requested
+        if (showPostSelectorOnLoad) {
+            setTimeout(() => {
+                openPostSelector();
+            }, 500);
         }
     </script>
 </body>

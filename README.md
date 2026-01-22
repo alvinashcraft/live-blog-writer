@@ -186,14 +186,26 @@ New settings format:
 
 ### Editing Published Posts
 
+You can edit posts that are already published on your blog:
+
+**Method 1: Using the Command Palette**
+
 1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
 1. Type "Live Blog Writer: Edit Published Post" and press Enter
-1. Select the blog containing the post you want to edit
-1. Choose from the 10 most recently published posts
+1. A post selector popup appears in the editor
+1. Select your blog from the dropdown
+1. Click on a post to select it, then click "Load Post"
 1. Make your changes in the editor
 1. Click "Publish Post" to update the live post
+1. Click "View Post" in the success message to see your changes
 
-**Note:** Posts being edited show an edit icon `$(edit)` if you have local changes in progress.
+**Method 2: From the Blog Editor**
+
+1. Open a new blog post or use an existing editor
+1. Click the "Load Published Post" button in the toolbar
+1. Follow the same steps to select and load a post
+
+**Supported platforms:** WordPress, Blogger, Ghost, and Dev.to (Substack is read-only)
 
 See [Editing Published Posts Guide](docs/EDITING_PUBLISHED_POSTS.md) for detailed information.
 

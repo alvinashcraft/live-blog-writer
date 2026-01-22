@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command to create a new blog post
     let newPostCommand = vscode.commands.registerCommand('live-blog-writer.newPost', () => {
-        BlogEditorPanel.createOrShow(context.extensionUri, draftManager);
+        BlogEditorPanel.createOrShow(context.extensionUri, draftManager, undefined, context);
     });
 
     // Register command to set WordPress password
@@ -306,7 +306,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (selected) {
                 const draftContent = await draftManager.loadDraft(selected.draft.id);
                 if (draftContent) {
-                    BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
+                    BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                 } else {
                     vscode.window.showErrorMessage('Failed to load the selected draft.');
                 }
@@ -372,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
                         if ('draft' in selected && selected.draft) {
                             const draftContent = await draftManager.loadDraft((selected as any).draft.id);
                             if (draftContent) {
-                                BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
+                                BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                             } else {
                                 vscode.window.showErrorMessage('Failed to load the selected draft.');
                             }
@@ -589,200 +589,8 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            // Let user select a blog
-            const blogOptions = blogs.map(b => `${b.name} (${b.platform})`);
-            const selectedBlogOption = await vscode.window.showQuickPick(blogOptions, {
-                placeHolder: 'Select blog to edit posts from'
-            });
-
-            if (!selectedBlogOption) {
-                return;
-            }
-
-            const blogIndex = blogOptions.indexOf(selectedBlogOption);
-            const selectedBlog = blogs[blogIndex];
-
-            vscode.window.showInformationMessage('Fetching published posts...');
-
-            // Fetch published posts from the selected blog
-            let posts: any[] = [];
-            try {
-                switch (selectedBlog.platform) {
-                    case 'wordpress':
-                        const wpPassword = await context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
-                        if (!wpPassword || !selectedBlog.id || !selectedBlog.username) {
-                            vscode.window.showErrorMessage('WordPress credentials incomplete. Please configure WordPress first.');
-                            return;
-                        }
-                        const wpService = new WordPressService(selectedBlog.id, selectedBlog.username, wpPassword);
-                        posts = await wpService.getPosts(1, 10);
-                        break;
-
-                    case 'blogger':
-                        const bloggerToken = await context.secrets.get('liveBlogWriter.blogger.token');
-                        if (!bloggerToken || !selectedBlog.id) {
-                            vscode.window.showErrorMessage('Blogger authentication required. Please authenticate with Blogger first.');
-                            return;
-                        }
-                        const bloggerService = new BloggerService(selectedBlog.id, bloggerToken);
-                        posts = await bloggerService.getPosts(10);
-                        break;
-
-                    case 'ghost':
-                        const ghostApiKey = await context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
-                        if (!ghostApiKey || !selectedBlog.id) {
-                            vscode.window.showErrorMessage('Ghost API key not configured. Please set Ghost API key first.');
-                            return;
-                        }
-                        const ghostService = new GhostService(selectedBlog.id, ghostApiKey);
-                        posts = await ghostService.getPosts(10);
-                        break;
-
-                    case 'substack':
-                        const substackCookie = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'apikey'));
-                        const substackEmail = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'email'));
-                        const substackPassword = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'password'));
-                        
-                        if (!selectedBlog.id) {
-                            vscode.window.showErrorMessage('Substack hostname not configured.');
-                            return;
-                        }
-                        
-                        let substackAuth: any;
-                        if (substackCookie) {
-                            substackAuth = { connectSid: substackCookie };
-                        } else if (substackEmail && substackPassword) {
-                            substackAuth = { email: substackEmail, password: substackPassword };
-                        } else {
-                            vscode.window.showErrorMessage('Substack credentials not configured. Please set Substack credentials first.');
-                            return;
-                        }
-                        
-                        const substackService = new SubstackService(substackAuth, selectedBlog.id);
-                        posts = await substackService.getPosts(10);
-                        break;
-
-                    case 'devto':
-                        const devtoApiKey = await context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
-                        if (!devtoApiKey) {
-                            vscode.window.showErrorMessage('Dev.to API key not configured. Please set Dev.to API key first.');
-                            return;
-                        }
-                        const devtoService = new DevToService(devtoApiKey);
-                        posts = await devtoService.getPosts(1, 10);
-                        break;
-
-                    default:
-                        vscode.window.showErrorMessage(`Platform ${selectedBlog.platform} not supported for editing.`);
-                        return;
-                }
-            } catch (error) {
-                vscode.window.showErrorMessage(`Failed to fetch posts: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                return;
-            }
-
-            if (!posts || posts.length === 0) {
-                vscode.window.showInformationMessage('No published posts found on this blog.');
-                return;
-            }
-
-            // Check for existing edit drafts
-            const allDrafts = await draftManager.listDrafts();
-            const editDrafts = allDrafts.filter(d => d.isEditDraft && d.blogName === selectedBlog.name);
-            
-            // Create quick pick items with edit-in-progress indicator
-            const quickPickItems = posts.map((post: any) => {
-                const postId = post.id;
-                const postTitle = post.title?.rendered || post.title || 'Untitled';
-                const existingDraft = editDrafts.find(d => String(d.publishedPostId) === String(postId));
-                
-                return {
-                    label: existingDraft ? `$(edit) ${postTitle}` : postTitle,
-                    description: existingDraft ? '(Edit in progress)' : '',
-                    detail: getPostDetail(post, selectedBlog.platform),
-                    post: post,
-                    existingDraft: existingDraft
-                };
-            });
-
-            const selected = await vscode.window.showQuickPick(quickPickItems, {
-                placeHolder: 'Select a post to edit',
-                matchOnDescription: true,
-                matchOnDetail: true
-            });
-
-            if (!selected) {
-                return;
-            }
-
-            // If there's an existing edit draft, load it
-            if (selected.existingDraft) {
-                const draftContent = await draftManager.loadDraft(selected.existingDraft.id);
-                if (draftContent) {
-                    BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
-                    vscode.window.showInformationMessage('Continuing edit of published post.');
-                } else {
-                    vscode.window.showErrorMessage('Failed to load edit draft.');
-                }
-                return;
-            }
-
-            // Fetch the full post content
-            let fullPost: any;
-            try {
-                switch (selectedBlog.platform) {
-                    case 'wordpress':
-                        const wpPassword = await context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
-                        const wpService = new WordPressService(selectedBlog.id!, selectedBlog.username!, wpPassword!);
-                        fullPost = await wpService.getPost(selected.post.id);
-                        break;
-
-                    case 'blogger':
-                        const bloggerToken = await context.secrets.get('liveBlogWriter.blogger.token');
-                        const bloggerService = new BloggerService(selectedBlog.id!, bloggerToken!);
-                        fullPost = await bloggerService.getPost(selected.post.id);
-                        break;
-
-                    case 'ghost':
-                        const ghostApiKey = await context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
-                        const ghostService = new GhostService(selectedBlog.id!, ghostApiKey!);
-                        fullPost = await ghostService.getPost(selected.post.id);
-                        break;
-
-                    case 'substack':
-                        const substackCookie = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'apikey'));
-                        const substackEmail = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'email'));
-                        const substackPassword = await context.secrets.get(getSecretKey('substack', selectedBlog.name, 'password'));
-                        
-                        let substackAuth: any;
-                        if (substackCookie) {
-                            substackAuth = { connectSid: substackCookie };
-                        } else {
-                            substackAuth = { email: substackEmail, password: substackPassword };
-                        }
-                        
-                        const substackService = new SubstackService(substackAuth, selectedBlog.id!);
-                        fullPost = await substackService.getPost(selected.post.id);
-                        break;
-
-                    case 'devto':
-                        const devtoApiKey = await context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
-                        const devtoService = new DevToService(devtoApiKey!);
-                        fullPost = await devtoService.getPost(selected.post.id);
-                        break;
-                }
-            } catch (error) {
-                vscode.window.showErrorMessage(`Failed to fetch post content: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                return;
-            }
-
-            // Convert post to draft format
-            const draftContent = convertPostToDraft(fullPost, selectedBlog.platform, selectedBlog.name);
-            
-            // Open in editor
-            BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent);
-            vscode.window.showInformationMessage(`Editing: ${draftContent.title}`);
-
+            // Open the editor with the post selector modal
+            BlogEditorPanel.createOrShow(context.extensionUri, draftManager, undefined, context, true);
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to edit published post: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
@@ -1358,13 +1166,24 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
     // Check if we're editing an existing post
     if (postData.publishedPostId && postData.isEditDraft) {
         const postId = convertPostIdForPlatform(postData.publishedPostId, 'wordpress');
-        await service.updatePost(
+        const result = await service.updatePost(
             postId as number, 
             postData.title, 
             postData.content, 
             options
         );
-        vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        const postUrl = result.link || postData.postUrl;
+        if (postUrl) {
+            const action = await vscode.window.showInformationMessage(
+                `Post updated successfully on ${blogConfig.name}!`,
+                'View Post'
+            );
+            if (action === 'View Post') {
+                vscode.env.openExternal(vscode.Uri.parse(postUrl));
+            }
+        } else {
+            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        }
     } else {
         const result = await service.createPost(postData.title, postData.content, options);
         vscode.window.showInformationMessage(`Post published successfully to ${blogConfig.name}! Post ID: ${result.id}`);
@@ -1438,7 +1257,18 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
             postData.content,
             updateOptions
         );
-        vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        const postUrl = postData.postUrl;
+        if (postUrl) {
+            const action = await vscode.window.showInformationMessage(
+                `Post updated successfully on ${blogConfig.name}!`,
+                'View Post'
+            );
+            if (action === 'View Post') {
+                vscode.env.openExternal(vscode.Uri.parse(postUrl));
+            }
+        } else {
+            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+        }
     } else {
         const result = await service.createPost(postData.title, postData.content, options);
         const statusMessage = options.isDraft ? 'saved as draft' : 'published';

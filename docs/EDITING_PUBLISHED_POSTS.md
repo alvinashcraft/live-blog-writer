@@ -4,24 +4,32 @@ Live Blog Writer now supports editing posts that have already been published to 
 
 ## How to Edit a Published Post
 
+### Method 1: Using the Command Palette
+
 1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
 1. Type "Live Blog Writer: Edit Published Post" and press Enter
+1. The blog editor opens with a post selection popup
 1. Select the blog you want to edit posts from
-1. The extension will fetch the 10 most recently published posts from that blog
-1. Select the post you want to edit from the list
-1. The post will open in the blog editor with all content and metadata
+1. The extension fetches the 10 most recently published posts
+1. Click on a post to select it, then click "Load Post"
+1. The post loads in the editor with all content and metadata
 1. Make your changes
 1. Click "Publish Post" to update the published post
+1. A success message appears with a "View Post" button to open the updated post in your browser
 
-## Edit-in-Progress Indicator
+### Method 2: From the Blog Editor
 
-When you start editing a published post, the extension creates a local draft marked as an "edit draft." If you return to edit the same post later:
+1. Open a new blog post (Command: "Live Blog Writer: New Post")
+1. Click the "Load Published Post" button in the editor toolbar
+1. Follow steps 4-10 from Method 1 above
 
-1. The post will show an edit icon `$(edit)` in the post selection list
-1. The description will show "(Edit in progress)"
-1. Selecting this post will resume your edit session
+## View Post After Publishing
 
-This prevents accidentally creating a duplicate draft when you want to continue editing.
+After successfully updating a post, a notification appears with:
+- Confirmation that the post was updated
+- A "View Post" button that opens the updated post in your browser
+
+This makes it easy to verify your changes are live on your blog.
 
 ## Supported Platforms
 
@@ -33,6 +41,8 @@ The edit published posts feature is supported on the following platforms:
 1. Updates the post using `PUT /wp-json/wp/v2/posts/{id}`
 1. Preserves post ID, publish date, and other metadata
 1. Supports updating title, content, excerpt, tags, and categories
+1. Tags and categories are fetched by name and displayed in the editor
+1. After updating, you can click "View Post" to open it in your browser
 
 ### Blogger
 
@@ -40,6 +50,7 @@ The edit published posts feature is supported on the following platforms:
 1. Updates posts using the Blogger API `PUT /blogs/{blogId}/posts/{postId}`
 1. Requires Google OAuth authentication
 1. Preserves labels (tags/categories) and publish date
+1. After updating, you can click "View Post" to open it in your browser
 
 ### Ghost
 
@@ -67,30 +78,29 @@ The edit published posts feature is supported on the following platforms:
 
 ### First Time Editing
 
-1. Command: "Edit Published Post"
-1. Select your blog
-1. Select a post from the list
+1. Command: "Edit Published Post" or click "Load Published Post" in the editor
+1. The post selector popup appears
+1. Select your blog from the dropdown
+1. Click on a post to select it, then click "Load Post"
 1. The post content is fetched and loaded into the editor
 1. Make your changes
-1. The extension automatically saves a local draft with `isEditDraft: true`
+1. The extension automatically saves a local draft
 1. Click "Publish Post" to update the live post
+1. Click "View Post" in the success message to see your changes
 
-### Continuing an Edit
+### Editing Another Post
 
-1. Command: "Edit Published Post"
-1. Select your blog
-1. Posts with local edits show `$(edit)` icon and "(Edit in progress)"
-1. Select the post to resume editing
-1. Continue making changes
-1. Click "Publish Post" to update the live post
+1. Click "Load Published Post" in the editor toolbar
+1. Select a different blog or post
+1. The new post replaces the current content in the editor
+1. Make your changes and publish
 
 ### Starting Fresh
 
-If you have a local edit draft but want to start fresh:
+If you want to discard your edits and start fresh:
 
-1. Use "Live Blog Writer: Manage Drafts"
-1. Delete the edit draft
-1. Use "Edit Published Post" again to fetch the latest version from your blog
+1. Use "Live Blog Writer: New Post" to create a blank post
+1. Or click "Load Published Post" and reload the same post from your blog
 
 ## Limitations
 
@@ -149,7 +159,9 @@ This shouldn't happen if using the edit feature correctly. If it does:
 
 1. **Preview before publishing:** There's no preview feature yet, so review your changes carefully in the editor before publishing.
 
-1. **Multiple edits:** You can edit posts from different blogs simultaneously. Each edit creates a separate local draft.
+1. **View your changes:** After publishing, click "View Post" in the success message to open the updated post in your browser.
+
+1. **Quick access:** Use the "Load Published Post" button in the editor toolbar instead of the Command Palette for faster access.
 
 1. **Version control:** Consider copying important posts to a separate file for version control before making major edits.
 
