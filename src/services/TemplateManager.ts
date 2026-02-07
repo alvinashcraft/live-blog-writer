@@ -167,7 +167,10 @@ export class TemplateManager {
             return templateId;
         } catch (error) {
             console.error('Failed to save template:', error);
-            throw new Error(`Failed to save template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Unknown error while saving template');
         }
     }
 
