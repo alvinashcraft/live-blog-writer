@@ -258,7 +258,7 @@ export class BlogEditorPanel {
 
     private async handleLoadPublishedPost(blogName: string, postId: string | number) {
         if (!this._context) {
-            vscode.window.showErrorMessage('Extension context not available');
+            vscode.window.showErrorMessage(vscode.l10n.t('Extension context not available'));
             return;
         }
 
@@ -267,7 +267,7 @@ export class BlogEditorPanel {
         const selectedBlog = blogs.find(b => b.name === blogName);
 
         if (!selectedBlog) {
-            vscode.window.showErrorMessage('Blog not found');
+            vscode.window.showErrorMessage(vscode.l10n.t('Blog not found'));
             return;
         }
 
@@ -280,7 +280,7 @@ export class BlogEditorPanel {
                 case 'wordpress':
                     const wpPassword = await this._context.secrets.get(getSecretKey('wordpress', selectedBlog.name, 'password'));
                     if (!wpPassword || !selectedBlog.id || !selectedBlog.username) {
-                        vscode.window.showErrorMessage('WordPress credentials incomplete. Please configure WordPress and try again.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('WordPress credentials incomplete. Please configure WordPress and try again.'));
                         return;
                     }
                     const wpService = new WordPressService(selectedBlog.id, selectedBlog.username, wpPassword);
@@ -303,12 +303,12 @@ export class BlogEditorPanel {
                     const bloggerToken = await this._context.secrets.get('liveBlogWriter.blogger.token');
 
                     if (!selectedBlog.id) {
-                        vscode.window.showErrorMessage('Blogger blog ID is not configured.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Blogger blog ID is not configured.'));
                         break;
                     }
 
                     if (!bloggerToken) {
-                        vscode.window.showErrorMessage('Blogger authentication token not found. Please reconnect your Blogger account.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Blogger authentication token not found. Please reconnect your Blogger account.'));
                         break;
                     }
 
@@ -318,13 +318,13 @@ export class BlogEditorPanel {
 
                 case 'ghost':
                     if (!selectedBlog.id) {
-                        vscode.window.showErrorMessage('Ghost blog ID is not configured. Please update your blog settings and try again.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Ghost blog ID is not configured. Please update your blog settings and try again.'));
                         return;
                     }
 
                     const ghostApiKey = await this._context.secrets.get(getSecretKey('ghost', selectedBlog.name, 'apikey'));
                     if (!ghostApiKey) {
-                        vscode.window.showErrorMessage('Ghost API key is not configured. Please set the Ghost API key before fetching posts.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Ghost API key is not configured. Please set the Ghost API key before fetching posts.'));
                         return;
                     }
 
@@ -334,7 +334,7 @@ export class BlogEditorPanel {
 
                 case 'substack':
                     if (!selectedBlog.id) {
-                        vscode.window.showErrorMessage('Substack hostname not configured. Please update your blog settings and try again.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Substack hostname not configured. Please update your blog settings and try again.'));
                         return;
                     }
                     
@@ -348,7 +348,7 @@ export class BlogEditorPanel {
                     } else if (substackEmail && substackPassword) {
                         substackAuth = { email: substackEmail, password: substackPassword };
                     } else {
-                        vscode.window.showErrorMessage('Substack credentials not configured. Please set up authentication and try again.');
+                        vscode.window.showErrorMessage(vscode.l10n.t('Substack credentials not configured. Please set up authentication and try again.'));
                         return;
                     }
                     
@@ -359,7 +359,7 @@ export class BlogEditorPanel {
                 case 'devto':
                     const devtoApiKey = await this._context.secrets.get(getSecretKey('devto', selectedBlog.name, 'apikey'));
                     if (!devtoApiKey) {
-                        vscode.window.showErrorMessage(`Dev.to API key not found for blog "${selectedBlog.name}". Please configure the credentials and try again.`);
+                        vscode.window.showErrorMessage(vscode.l10n.t('Dev.to API key not found for blog "{0}". Please configure the credentials and try again.', selectedBlog.name));
                         return;
                     }
                     const devtoService = new DevToService(devtoApiKey);
@@ -395,9 +395,9 @@ export class BlogEditorPanel {
             this._currentDraftId = undefined; // New edit, no draft ID yet
             this._panel.title = `Blog Editor - ${draftData.title || 'Untitled'}`;
 
-            vscode.window.showInformationMessage(`Loaded: ${draftData.title}`);
+            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title));
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to load post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     }
 
