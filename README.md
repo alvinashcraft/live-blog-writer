@@ -30,6 +30,9 @@ Add a new blog from WordPress, Blogger, Ghost, Substack, or Dev.to:
 - **Default Blog**: Set a default blog for quick publishing
 - **Blog Selection**: Choose which blog to publish to directly from the editor
 - **Edit Published Posts**: Fetch and edit posts that are already published on your blog
+- **Post Templates**: Save and reuse post structures for consistent formatting
+- **Keyboard Shortcuts**: Quick access to common actions (New Post, Save Draft, Publish)
+- **Localization**: Full internationalization support (English and Spanish included)
 - **Metadata Management**: Easy-to-use left panel for managing post details:
   - Blog selection dropdown
   - Post title
@@ -158,6 +161,7 @@ New settings format:
 1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
 1. Type "Live Blog Writer: New Blog Post" and press Enter
 1. The blog editor will open in a new panel
+1. Or use the keyboard shortcut: `Ctrl+Alt+N` (`Cmd+Alt+N` on Mac)
 
 ### Writing Your Post
 
@@ -179,8 +183,8 @@ New settings format:
 ### Publishing Your Post
 
 1. **Select your target blog** from the "Selected Blog" dropdown (if not already selected)
-1. Click the **"Save Draft"** button to save your work locally
-1. Click the **"Publish Post"** button to publish to your selected blog
+1. Click the **"Save Draft"** button to save your work locally (or press `Ctrl+Alt+S`)
+1. Click the **"Publish Post"** button to publish to your selected blog (or press `Ctrl+Alt+P`)
    - If no blog is selected, you'll be prompted to choose one
 1. Or use the Command Palette: "Live Blog Writer: Publish Post"
 
@@ -208,6 +212,44 @@ You can edit posts that are already published on your blog:
 **Supported platforms:** WordPress, Blogger, Ghost, and Dev.to (Substack is read-only)
 
 See [Editing Published Posts Guide](docs/EDITING_PUBLISHED_POSTS.md) for detailed information.
+
+### Post Templates
+
+Save and reuse post templates for consistent formatting across posts:
+
+**Saving a Template:**
+
+1. Create or open a blog post with the content you want to reuse
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+1. Type "Live Blog Writer: Save as Template"
+1. Enter a name for the template (e.g., "Weekly Newsletter")
+1. The template saves title, content, tags, categories, excerpt, and content format
+
+**Creating a Post from a Template:**
+
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+1. Type "Live Blog Writer: New Post from Template"
+1. Select a template from the list
+1. A new editor opens pre-populated with the template content
+
+Templates are stored locally in your `Documents/LiveBlogWriter/Templates/` folder.
+
+### Keyboard Shortcuts
+
+| Action | Windows/Linux | Mac |
+|--------|--------------|-----|
+| New Blog Post | `Ctrl+Alt+N` | `Cmd+Alt+N` |
+| Save Draft | `Ctrl+Alt+S` | `Cmd+Alt+S` |
+| Publish Post | `Ctrl+Alt+P` | `Cmd+Alt+P` |
+
+### Localization
+
+The extension supports multiple languages. Currently included:
+
+- **English** (default)
+- **Spanish** (es)
+
+The extension automatically uses your VS Code display language. To add a new language, contribute translations via the [GitHub repository](https://github.com/alvinashcraft/live-blog-writer).
 
 ## Features in Detail
 
@@ -363,11 +405,15 @@ See [LICENSE](LICENSE) file for details.
 - [x] Default blog selection
 - [x] Draft management (list and edit existing drafts)
 - [x] Edit published posts feature
+- [x] Keyboard shortcuts for common actions
+- [x] Localization support (English + Spanish)
+- [x] Post templates (save and reuse)
 - [ ] Support for featured images
 - [ ] Direct image upload to blog platforms
 - [ ] Support for custom post types
 - [ ] Post scheduling
 - [ ] Additional blog platform support (Hashnode, Medium, etc.)
+- [ ] Additional language translations
 - [ ] Search and filter published posts for editing
 - [ ] Pagination for fetching more than 10 posts
 

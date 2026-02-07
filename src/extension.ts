@@ -7,6 +7,7 @@ import { GhostService } from './services/GhostService';
 import { SubstackService } from './services/SubstackService';
 import { DevToService } from './services/DevToService';
 import { DraftManager } from './services/DraftManager';
+import { TemplateManager } from './services/TemplateManager';
 import { GoogleOAuthService } from './services/GoogleOAuthService';
 import MarkdownIt from 'markdown-it';
 
@@ -40,7 +41,15 @@ interface BlogConfig {
 }
 
 let draftManager: DraftManager;
+let templateManager: TemplateManager | undefined;
 let googleOAuthService: GoogleOAuthService;
+
+function getTemplateManager(): TemplateManager {
+    if (!templateManager) {
+        templateManager = new TemplateManager();
+    }
+    return templateManager;
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Live Blog Writer extension is now active!');
@@ -66,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
         const wordpressBlogs = blogConfigs.filter(blog => blog.platform === 'wordpress');
 
         if (wordpressBlogs.length === 0) {
-            vscode.window.showWarningMessage('No WordPress blogs configured. Please add a WordPress blog configuration first.');
+            vscode.window.showWarningMessage(vscode.l10n.t('No WordPress blogs configured. Please add a WordPress blog configuration first.'));
             return;
         }
 
@@ -78,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
             // Multiple WordPress blogs - prompt for selection
             const blogNames = wordpressBlogs.map(blog => blog.name);
             const selectedName = await vscode.window.showQuickPick(blogNames, {
-                placeHolder: 'Select which WordPress blog to set the password for'
+                placeHolder: vscode.l10n.t('Select which WordPress blog to set the password for')
             });
 
             if (!selectedName) {
@@ -89,16 +98,16 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const password = await vscode.window.showInputBox({
-            prompt: `Enter WordPress Application Password for "${selectedBlog.name}"`,
+            prompt: vscode.l10n.t('Enter WordPress Application Password for "{0}"', selectedBlog.name),
             password: true,
             ignoreFocusOut: true,
-            placeHolder: 'WordPress application password'
+            placeHolder: vscode.l10n.t('WordPress application password')
         });
 
         if (password) {
             const secretKey = getSecretKey('wordpress', selectedBlog.name, 'password');
             await context.secrets.store(secretKey, password);
-            vscode.window.showInformationMessage(`WordPress password saved securely for "${selectedBlog.name}".`);
+            vscode.window.showInformationMessage(vscode.l10n.t('WordPress password saved securely for "{0}".', selectedBlog.name));
         }
     });
 
@@ -108,39 +117,39 @@ export function activate(context: vscode.ExtensionContext) {
         
         if (isUsingCustom) {
             const action = await vscode.window.showWarningMessage(
-                'You are currently using custom OAuth credentials. What would you like to do?',
-                'Update Credentials',
-                'Revert to Default',
-                'Cancel'
+                vscode.l10n.t('You are currently using custom OAuth credentials. What would you like to do?'),
+                vscode.l10n.t('Update Credentials'),
+                vscode.l10n.t('Revert to Default'),
+                vscode.l10n.t('Cancel')
             );
 
-            if (action === 'Revert to Default') {
+            if (action === vscode.l10n.t('Revert to Default')) {
                 await googleOAuthService.clearCustomClientCredentials();
                 await googleOAuthService.clearAuthentication();
-                vscode.window.showInformationMessage('Reverted to default OAuth credentials. Please re-authenticate.');
+                vscode.window.showInformationMessage(vscode.l10n.t('Reverted to default OAuth credentials. Please re-authenticate.'));
                 return;
-            } else if (action !== 'Update Credentials') {
+            } else if (action !== vscode.l10n.t('Update Credentials')) {
                 return;
             }
         } else {
             const proceed = await vscode.window.showInformationMessage(
-                'This extension comes with built-in OAuth credentials. You only need custom credentials if you want to use your own Google Cloud project.\n\nDo you want to set up custom credentials?',
-                'Yes',
-                'No'
+                vscode.l10n.t('This extension comes with built-in OAuth credentials. You only need custom credentials if you want to use your own Google Cloud project.\n\nDo you want to set up custom credentials?'),
+                vscode.l10n.t('Yes'),
+                vscode.l10n.t('No')
             );
 
-            if (proceed !== 'Yes') {
+            if (proceed !== vscode.l10n.t('Yes')) {
                 return;
             }
         }
 
         const clientId = await vscode.window.showInputBox({
-            prompt: 'Enter your Google OAuth Client ID',
+            prompt: vscode.l10n.t('Enter your Google OAuth Client ID'),
             placeHolder: 'your-client-id.apps.googleusercontent.com',
             ignoreFocusOut: true,
             validateInput: (value) => {
                 if (!value || value.trim().length === 0) {
-                    return 'Client ID cannot be empty';
+                    return vscode.l10n.t('Client ID cannot be empty');
                 }
                 return null;
             }
@@ -151,13 +160,13 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const clientSecret = await vscode.window.showInputBox({
-            prompt: 'Enter your Google OAuth Client Secret',
+            prompt: vscode.l10n.t('Enter your Google OAuth Client Secret'),
             placeHolder: 'GOCSPX-...',
             password: true,
             ignoreFocusOut: true,
             validateInput: (value) => {
                 if (!value || value.trim().length === 0) {
-                    return 'Client Secret cannot be empty';
+                    return vscode.l10n.t('Client Secret cannot be empty');
                 }
                 return null;
             }
@@ -169,16 +178,16 @@ export function activate(context: vscode.ExtensionContext) {
 
         await googleOAuthService.setCustomClientCredentials(clientId, clientSecret);
         await googleOAuthService.clearAuthentication();
-        vscode.window.showInformationMessage('Custom OAuth credentials saved. Please re-authenticate with your credentials.');
+        vscode.window.showInformationMessage(vscode.l10n.t('Custom OAuth credentials saved. Please re-authenticate with your credentials.'));
     });
 
     // Register command to authenticate with Google for Blogger
     let authenticateBloggerCommand = vscode.commands.registerCommand('live-blog-writer.authenticateBlogger', async () => {
         try {
             await googleOAuthService.authenticate();
-            vscode.window.showInformationMessage('Successfully authenticated with Google for Blogger!');
+            vscode.window.showInformationMessage(vscode.l10n.t('Successfully authenticated with Google for Blogger!'));
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to authenticate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to authenticate: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -186,14 +195,14 @@ export function activate(context: vscode.ExtensionContext) {
     let publishPostCommand = vscode.commands.registerCommand('live-blog-writer.publishPost', async () => {
         const panel = BlogEditorPanel.currentPanel;
         if (!panel) {
-            vscode.window.showErrorMessage('No blog post is currently open. Please create a new post first.');
+            vscode.window.showErrorMessage(vscode.l10n.t('No blog post is currently open. Please create a new post first.'));
             return;
         }
 
         // Get the post content from the webview
         const postData = await panel.getPostData();
         if (!postData) {
-            vscode.window.showErrorMessage('Failed to retrieve post data.');
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to retrieve post data.'));
             return;
         }
 
@@ -214,7 +223,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (defaultBlogName) {
                 selectedBlog = blogs.find(b => b.name === defaultBlogName);
                 if (!selectedBlog) {
-                    vscode.window.showWarningMessage(`Default blog '${defaultBlogName}' not found in configured blogs.`);
+                    vscode.window.showWarningMessage(vscode.l10n.t('Default blog \'{0}\' not found in configured blogs.', defaultBlogName));
                 }
             }
         }
@@ -234,14 +243,14 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
                 
-                vscode.window.showErrorMessage('No blog configurations found. Please add a blog configuration first.');
+                vscode.window.showErrorMessage(vscode.l10n.t('No blog configurations found. Please add a blog configuration first.'));
                 return;
             }
 
             // Let user select a blog
             const blogOptions = blogs.map(b => `${b.name} (${b.platform})`);
             const selected = await vscode.window.showQuickPick(blogOptions, {
-                placeHolder: 'Select blog to publish to'
+                placeHolder: vscode.l10n.t('Select blog to publish to')
             });
 
             if (!selected) {
@@ -272,10 +281,10 @@ export function activate(context: vscode.ExtensionContext) {
                     await publishToDevTo(postDataForPublish, selectedBlog, context);
                     break;
                 default:
-                    vscode.window.showErrorMessage(`Unsupported platform: ${selectedBlog.platform}`);
+                    vscode.window.showErrorMessage(vscode.l10n.t('Unsupported platform: {0}', selectedBlog.platform));
             }
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to publish post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to publish post: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -285,20 +294,20 @@ export function activate(context: vscode.ExtensionContext) {
             const recentDrafts = await draftManager.getRecentDrafts(20);
             
             if (recentDrafts.length === 0) {
-                vscode.window.showInformationMessage('No recent drafts found.');
+                vscode.window.showInformationMessage(vscode.l10n.t('No recent drafts found.'));
                 return;
             }
 
             // Create quick pick items with draft info
             const quickPickItems = recentDrafts.map(draft => ({
-                label: draft.title || 'Untitled Draft',
-                description: `${draft.wordCount} words`,
+                label: draft.title || vscode.l10n.t('Untitled Draft'),
+                description: vscode.l10n.t('{0} words', draft.wordCount),
                 detail: `Last modified: ${draft.updatedAt.toLocaleDateString()} ${draft.updatedAt.toLocaleTimeString()}`,
                 draft: draft
             }));
 
             const selected = await vscode.window.showQuickPick(quickPickItems, {
-                placeHolder: 'Select a draft to open',
+                placeHolder: vscode.l10n.t('Select a draft to open'),
                 matchOnDescription: true,
                 matchOnDetail: true
             });
@@ -308,11 +317,11 @@ export function activate(context: vscode.ExtensionContext) {
                 if (draftContent) {
                     BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                 } else {
-                    vscode.window.showErrorMessage('Failed to load the selected draft.');
+                    vscode.window.showErrorMessage(vscode.l10n.t('Failed to load the selected draft.'));
                 }
             }
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to load recent drafts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load recent drafts: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -322,8 +331,8 @@ export function activate(context: vscode.ExtensionContext) {
             const allDrafts = await draftManager.listDrafts();
             
             if (allDrafts.length === 0) {
-                const action = await vscode.window.showInformationMessage('No drafts found.', 'Create New Post');
-                if (action === 'Create New Post') {
+                const action = await vscode.window.showInformationMessage(vscode.l10n.t('No drafts found.'), vscode.l10n.t('Create New Post'));
+                if (action === vscode.l10n.t('Create New Post')) {
                     vscode.commands.executeCommand('live-blog-writer.newPost');
                 }
                 return;
@@ -331,12 +340,12 @@ export function activate(context: vscode.ExtensionContext) {
 
             // Create quick pick items with management options
             const quickPickItems = [
-                { label: '$(folder-opened) Open Drafts Folder', description: 'Open the drafts folder in file explorer', action: 'openFolder' },
-                { label: '$(trash) Cleanup Old Drafts', description: 'Delete drafts older than 30 days', action: 'cleanup' },
+                { label: vscode.l10n.t('$(folder-opened) Open Drafts Folder'), description: vscode.l10n.t('Open the drafts folder in file explorer'), action: 'openFolder' },
+                { label: vscode.l10n.t('$(trash) Cleanup Old Drafts'), description: vscode.l10n.t('Delete drafts older than 30 days'), action: 'cleanup' },
                 { label: '', kind: vscode.QuickPickItemKind.Separator },
                 ...allDrafts.map(draft => ({
-                    label: draft.title || 'Untitled Draft',
-                    description: `${draft.wordCount} words`,
+                    label: draft.title || vscode.l10n.t('Untitled Draft'),
+                    description: vscode.l10n.t('{0} words', draft.wordCount),
                     detail: `Last modified: ${draft.updatedAt.toLocaleDateString()} ${draft.updatedAt.toLocaleTimeString()}`,
                     action: 'open',
                     draft: draft
@@ -344,7 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
             ];
 
             const selected = await vscode.window.showQuickPick(quickPickItems, {
-                placeHolder: 'Select an action or draft to open',
+                placeHolder: vscode.l10n.t('Select an action or draft to open'),
                 matchOnDescription: true,
                 matchOnDetail: true
             });
@@ -358,13 +367,13 @@ export function activate(context: vscode.ExtensionContext) {
                     
                     case 'cleanup':
                         const confirm = await vscode.window.showWarningMessage(
-                            'Delete all drafts older than 30 days?',
+                            vscode.l10n.t('Delete all drafts older than 30 days?'),
                             { modal: true },
-                            'Delete'
+                            vscode.l10n.t('Delete')
                         );
-                        if (confirm === 'Delete') {
+                        if (confirm === vscode.l10n.t('Delete')) {
                             const deletedCount = await draftManager.cleanupOldDrafts(30);
-                            vscode.window.showInformationMessage(`Deleted ${deletedCount} old drafts.`);
+                            vscode.window.showInformationMessage(vscode.l10n.t('Deleted {0} old drafts.', deletedCount));
                         }
                         break;
                     
@@ -374,14 +383,14 @@ export function activate(context: vscode.ExtensionContext) {
                             if (draftContent) {
                                 BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftContent, context);
                             } else {
-                                vscode.window.showErrorMessage('Failed to load the selected draft.');
+                                vscode.window.showErrorMessage(vscode.l10n.t('Failed to load the selected draft.'));
                             }
                         }
                         break;
                 }
             }
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to manage drafts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to manage drafts: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -389,15 +398,15 @@ export function activate(context: vscode.ExtensionContext) {
     let saveDraftCommand = vscode.commands.registerCommand('live-blog-writer.saveDraft', async () => {
         const panel = BlogEditorPanel.currentPanel;
         if (!panel) {
-            vscode.window.showErrorMessage('No blog post is currently open.');
+            vscode.window.showErrorMessage(vscode.l10n.t('No blog post is currently open.'));
             return;
         }
 
         try {
             await panel.saveDraftManually();
-            vscode.window.showInformationMessage('Draft saved successfully.');
+            vscode.window.showInformationMessage(vscode.l10n.t('Draft saved successfully.'));
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to save draft: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to save draft: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -413,13 +422,13 @@ export function activate(context: vscode.ExtensionContext) {
         const ghostBlogs = blogs.filter(b => b.platform === 'ghost');
 
         if (ghostBlogs.length === 0) {
-            vscode.window.showErrorMessage('No Ghost blog configurations found. Please add a Ghost blog first.');
+            vscode.window.showErrorMessage(vscode.l10n.t('No Ghost blog configurations found. Please add a Ghost blog first.'));
             return;
         }
 
         const blogNames = ghostBlogs.map(b => b.name);
         const selectedBlog = await vscode.window.showQuickPick(blogNames, {
-            placeHolder: 'Select Ghost blog to set API key for'
+            placeHolder: vscode.l10n.t('Select Ghost blog to set API key for')
         });
 
         if (!selectedBlog) {
@@ -427,16 +436,16 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const apiKey = await vscode.window.showInputBox({
-            prompt: 'Enter your Ghost Admin API key (format: id:secret)',
+            prompt: vscode.l10n.t('Enter your Ghost Admin API key (format: id:secret)'),
             password: true,
             ignoreFocusOut: true,
-            placeHolder: 'API key from Ghost Admin settings'
+            placeHolder: vscode.l10n.t('API key from Ghost Admin settings')
         });
 
         if (apiKey) {
             const secretKey = getSecretKey('ghost', selectedBlog, 'apikey');
             await context.secrets.store(secretKey, apiKey);
-            vscode.window.showInformationMessage('Ghost API key saved securely.');
+            vscode.window.showInformationMessage(vscode.l10n.t('Ghost API key saved securely.'));
         }
     });
 
@@ -447,13 +456,13 @@ export function activate(context: vscode.ExtensionContext) {
         const substackBlogs = blogs.filter(b => b.platform === 'substack');
 
         if (substackBlogs.length === 0) {
-            vscode.window.showErrorMessage('No Substack blog configurations found. Please add a Substack blog first.');
+            vscode.window.showErrorMessage(vscode.l10n.t('No Substack blog configurations found. Please add a Substack blog first.'));
             return;
         }
 
         const blogNames = substackBlogs.map(b => b.name);
         const selectedBlog = await vscode.window.showQuickPick(blogNames, {
-            placeHolder: 'Select Substack blog to set credentials for'
+            placeHolder: vscode.l10n.t('Select Substack blog to set credentials for')
         });
 
         if (!selectedBlog) {
@@ -462,10 +471,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Ask user which authentication method they prefer
         const authMethod = await vscode.window.showQuickPick([
-            { label: 'Cookie (connect.sid)', value: 'cookie', description: 'Recommended - Most reliable method' },
-            { label: 'Email & Password', value: 'email', description: 'Alternative - May not work due to Substack API restrictions' }
+            { label: vscode.l10n.t('Cookie (connect.sid)'), value: 'cookie', description: vscode.l10n.t('Recommended - Most reliable method') },
+            { label: vscode.l10n.t('Email & Password'), value: 'email', description: vscode.l10n.t('Alternative - May not work due to Substack API restrictions') }
         ], {
-            placeHolder: 'Select authentication method'
+            placeHolder: vscode.l10n.t('Select authentication method')
         });
 
         if (!authMethod) {
@@ -475,17 +484,17 @@ export function activate(context: vscode.ExtensionContext) {
         if (authMethod.value === 'email') {
             // Email/Password authentication
             const email = await vscode.window.showInputBox({
-                prompt: 'Enter your Substack email address',
+                prompt: vscode.l10n.t('Enter your Substack email address'),
                 placeHolder: 'your-email@example.com',
                 ignoreFocusOut: true,
                 validateInput: (value) => {
                     if (!value) {
-                        return 'Email address is required';
+                        return vscode.l10n.t('Email address is required');
                     }
                     // RFC 5322 compliant email validation (simplified)
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(value)) {
-                        return 'Please enter a valid email address';
+                        return vscode.l10n.t('Please enter a valid email address');
                     }
                     return null;
                 }
@@ -496,10 +505,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             const password = await vscode.window.showInputBox({
-                prompt: 'Enter your Substack password',
+                prompt: vscode.l10n.t('Enter your Substack password'),
                 password: true,
                 ignoreFocusOut: true,
-                placeHolder: 'Your Substack password'
+                placeHolder: vscode.l10n.t('Your Substack password')
             });
 
             if (!password) {
@@ -516,14 +525,14 @@ export function activate(context: vscode.ExtensionContext) {
             const cookieKey = getSecretKey('substack', selectedBlog, 'apikey');
             await context.secrets.delete(cookieKey);
             
-            vscode.window.showInformationMessage(`Substack email/password credentials saved securely for "${selectedBlog}".`);
+            vscode.window.showInformationMessage(vscode.l10n.t('Substack email/password credentials saved securely for "{0}".', selectedBlog));
         } else {
             // Cookie authentication
             const cookie = await vscode.window.showInputBox({
-                prompt: 'Enter your Substack connect.sid cookie value',
+                prompt: vscode.l10n.t('Enter your Substack connect.sid cookie value'),
                 password: true,
                 ignoreFocusOut: true,
-                placeHolder: 'connect.sid cookie from your Substack session'
+                placeHolder: vscode.l10n.t('connect.sid cookie from your Substack session')
             });
 
             if (!cookie) {
@@ -540,7 +549,7 @@ export function activate(context: vscode.ExtensionContext) {
             await context.secrets.delete(emailKey);
             await context.secrets.delete(passwordKey);
             
-            vscode.window.showInformationMessage(`Substack cookie credential saved securely for "${selectedBlog}".`);
+            vscode.window.showInformationMessage(vscode.l10n.t('Substack cookie credential saved securely for "{0}".', selectedBlog));
         }
     });
 
@@ -551,13 +560,13 @@ export function activate(context: vscode.ExtensionContext) {
         const devtoBlogs = blogs.filter(b => b.platform === 'devto');
 
         if (devtoBlogs.length === 0) {
-            vscode.window.showErrorMessage('No Dev.to blog configurations found. Please add a Dev.to account in Blog Connections first.');
+            vscode.window.showErrorMessage(vscode.l10n.t('No Dev.to blog configurations found. Please add a Dev.to account in Blog Connections first.'));
             return;
         }
 
         const blogNames = devtoBlogs.map(b => b.name);
         const selectedBlog = await vscode.window.showQuickPick(blogNames, {
-            placeHolder: 'Select Dev.to account to set API key for'
+            placeHolder: vscode.l10n.t('Select Dev.to account to set API key for')
         });
 
         if (!selectedBlog) {
@@ -565,16 +574,16 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const apiKey = await vscode.window.showInputBox({
-            prompt: 'Enter your Dev.to API key',
+            prompt: vscode.l10n.t('Enter your Dev.to API key'),
             password: true,
             ignoreFocusOut: true,
-            placeHolder: 'DEV API key from Settings → Account → DEV API Keys'
+            placeHolder: vscode.l10n.t('DEV API key from Settings → Account → DEV API Keys')
         });
 
         if (apiKey) {
             const secretKey = getSecretKey('devto', selectedBlog, 'apikey');
             await context.secrets.store(secretKey, apiKey);
-            vscode.window.showInformationMessage('Dev.to API key saved securely.');
+            vscode.window.showInformationMessage(vscode.l10n.t('Dev.to API key saved securely.'));
         }
     });
 
@@ -585,14 +594,115 @@ export function activate(context: vscode.ExtensionContext) {
             const blogs = config.get<BlogConfig[]>('blogs', []);
 
             if (blogs.length === 0) {
-                vscode.window.showErrorMessage('No blog configurations found. Please add a blog configuration first.');
+                vscode.window.showErrorMessage(vscode.l10n.t('No blog configurations found. Please add a blog configuration first.'));
                 return;
             }
 
             // Open the editor with the post selector modal
             BlogEditorPanel.createOrShow(context.extensionUri, draftManager, undefined, context, true);
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to edit published post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to edit published post: {0}', error instanceof Error ? error.message : 'Unknown error'));
+        }
+    });
+
+    // Register command to save current post as a template
+    let saveAsTemplateCommand = vscode.commands.registerCommand('live-blog-writer.saveAsTemplate', async () => {
+        const panel = BlogEditorPanel.currentPanel;
+        if (!panel) {
+            vscode.window.showErrorMessage(vscode.l10n.t('No blog post is currently open.'));
+            return;
+        }
+
+        try {
+            const postData = await panel.getPostData();
+            if (!postData) {
+                vscode.window.showErrorMessage(vscode.l10n.t('Failed to retrieve post data.'));
+                return;
+            }
+
+            const templateName = await vscode.window.showInputBox({
+                prompt: vscode.l10n.t('Enter a name for this template'),
+                placeHolder: vscode.l10n.t('e.g., Weekly Newsletter'),
+                ignoreFocusOut: true,
+                validateInput: (value) => {
+                    if (!value || value.trim().length === 0) {
+                        return vscode.l10n.t('Template name cannot be empty');
+                    }
+                    return null;
+                }
+            });
+
+            if (!templateName) {
+                return;
+            }
+
+            await getTemplateManager().saveTemplate(templateName.trim(), {
+                title: postData.title,
+                content: postData.content,
+                contentFormat: postData.contentFormat,
+                tags: postData.tags,
+                categories: postData.categories,
+                excerpt: postData.excerpt
+            });
+
+            vscode.window.showInformationMessage(vscode.l10n.t('Template "{0}" saved successfully.', templateName.trim()));
+        } catch (error) {
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to save template: {0}', error instanceof Error ? error.message : 'Unknown error'));
+        }
+    });
+
+    // Register command to create a new post from a template
+    let newPostFromTemplateCommand = vscode.commands.registerCommand('live-blog-writer.newPostFromTemplate', async () => {
+        try {
+            const templates = await getTemplateManager().listTemplates();
+
+            if (templates.length === 0) {
+                vscode.window.showInformationMessage(vscode.l10n.t('No templates found. Use "Save as Template" to create one.'));
+                return;
+            }
+
+            const quickPickItems = templates.map(tmpl => ({
+                label: tmpl.name,
+                description: tmpl.contentFormat || 'html',
+                detail: vscode.l10n.t('Created: {0}', tmpl.createdAt.toLocaleDateString()),
+                template: tmpl
+            }));
+
+            const selected = await vscode.window.showQuickPick(quickPickItems, {
+                placeHolder: vscode.l10n.t('Select a template'),
+                matchOnDescription: true
+            });
+
+            if (!selected) {
+                return;
+            }
+
+            const templateContent = await getTemplateManager().loadTemplate(selected.template.id);
+            if (!templateContent) {
+                vscode.window.showErrorMessage(vscode.l10n.t('Failed to load the selected template.'));
+                return;
+            }
+
+            // Convert template to draft content format for the editor
+            const draftFromTemplate = {
+                title: templateContent.title,
+                content: templateContent.content,
+                contentFormat: templateContent.contentFormat,
+                tags: templateContent.tags,
+                categories: templateContent.categories,
+                excerpt: templateContent.excerpt,
+                metadata: {
+                    id: '',
+                    title: templateContent.title,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    wordCount: 0
+                }
+            };
+
+            BlogEditorPanel.createOrShow(context.extensionUri, draftManager, draftFromTemplate, context);
+        } catch (error) {
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to create post from template: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
     });
 
@@ -609,7 +719,9 @@ export function activate(context: vscode.ExtensionContext) {
         setGhostApiKeyCommand,
         setSubstackApiKeyCommand,
         setDevToApiKeyCommand,
-        editPublishedPostCommand
+        editPublishedPostCommand,
+        saveAsTemplateCommand,
+        newPostFromTemplateCommand
     );
 }
 
@@ -650,8 +762,8 @@ function convertPostIdForPlatform(postId: string | number, platform: string): st
 
 async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogName = await vscode.window.showInputBox({
-        prompt: 'Enter a name for this blog configuration',
-        placeHolder: 'e.g., My Personal Blog'
+        prompt: vscode.l10n.t('Enter a name for this blog configuration'),
+        placeHolder: vscode.l10n.t('e.g., My Personal Blog')
     });
 
     if (!blogName) {
@@ -660,7 +772,7 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
 
     const platform = await vscode.window.showQuickPick(
         ['wordpress', 'blogger', 'ghost', 'substack'],
-        { placeHolder: 'Select blog platform' }
+        { placeHolder: vscode.l10n.t('Select blog platform') }
     );
 
     if (!platform) {
@@ -676,18 +788,18 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
     switch (platform) {
         case 'wordpress':
             const wpUrl = await vscode.window.showInputBox({
-                prompt: 'Enter WordPress site URL',
+                prompt: vscode.l10n.t('Enter WordPress site URL'),
                 placeHolder: 'https://example.com'
             });
             const wpUsername = await vscode.window.showInputBox({
-                prompt: 'Enter WordPress username'
+                prompt: vscode.l10n.t('Enter WordPress username')
             });
             if (wpUrl && wpUsername) {
                 blogConfig.id = wpUrl;
                 blogConfig.username = wpUsername;
                 
                 const wpPassword = await vscode.window.showInputBox({
-                    prompt: 'Enter WordPress application password',
+                    prompt: vscode.l10n.t('Enter WordPress application password'),
                     password: true
                 });
                 if (wpPassword) {
@@ -699,7 +811,7 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
 
         case 'blogger':
             const blogId = await vscode.window.showInputBox({
-                prompt: 'Enter Blogger Blog ID'
+                prompt: vscode.l10n.t('Enter Blogger Blog ID')
             });
             if (blogId) {
                 blogConfig.id = blogId;
@@ -708,22 +820,22 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
 
         case 'ghost':
             const ghostUrl = await vscode.window.showInputBox({
-                prompt: 'Enter Ghost site URL',
+                prompt: vscode.l10n.t('Enter Ghost site URL'),
                 placeHolder: 'https://example.com'
             });
             if (ghostUrl) {
                 blogConfig.id = ghostUrl;
             }
-            vscode.window.showInformationMessage('Remember to set your Ghost API key using the "Set Ghost API Key" command.');
+            vscode.window.showInformationMessage(vscode.l10n.t('Remember to set your Ghost API key using the "Set Ghost API Key" command.'));
             break;
 
         case 'substack':
             const substackHostname = await vscode.window.showInputBox({
-                prompt: 'Enter Substack hostname',
+                prompt: vscode.l10n.t('Enter Substack hostname'),
                 placeHolder: 'yoursite.substack.com'
             });
             const substackUsername = await vscode.window.showInputBox({
-                prompt: 'Enter Substack username (optional)'
+                prompt: vscode.l10n.t('Enter Substack username (optional)')
             });
             if (substackHostname) {
                 blogConfig.id = substackHostname;
@@ -731,7 +843,7 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
             if (substackUsername) {
                 blogConfig.username = substackUsername;
             }
-            vscode.window.showInformationMessage('Remember to set your Substack API key using the "Set Substack API Key" command.');
+            vscode.window.showInformationMessage(vscode.l10n.t('Remember to set your Substack API key using the "Set Substack API Key" command.'));
             break;
     }
 
@@ -740,19 +852,19 @@ async function addBlogConfiguration(config: vscode.WorkspaceConfiguration, conte
     blogs.push(blogConfig);
     await config.update('blogs', blogs, vscode.ConfigurationTarget.Global);
     
-    vscode.window.showInformationMessage(`Blog configuration "${blogName}" added successfully!`);
+    vscode.window.showInformationMessage(vscode.l10n.t('Blog configuration "{0}" added successfully!', blogName));
 }
 
 async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogs = config.get<BlogConfig[]>('blogs', []);
     if (blogs.length === 0) {
-        vscode.window.showInformationMessage('No blog configurations found.');
+        vscode.window.showInformationMessage(vscode.l10n.t('No blog configurations found.'));
         return;
     }
 
     const blogNames = blogs.map(b => `${b.name} (${b.platform})`);
     const selected = await vscode.window.showQuickPick(blogNames, {
-        placeHolder: 'Select blog to edit'
+        placeHolder: vscode.l10n.t('Select blog to edit')
     });
 
     if (!selected) {
@@ -763,9 +875,14 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
     const blog = blogs[index];
 
     // Show edit options
-    const editOptions = ['Change Name', 'Update URL/ID', 'Update Username', 'Update Password/Token'];
+    const editOptions = [
+        vscode.l10n.t('Change Name'),
+        vscode.l10n.t('Update URL/ID'),
+        vscode.l10n.t('Update Username'),
+        vscode.l10n.t('Update Password/Token')
+    ];
     const editChoice = await vscode.window.showQuickPick(editOptions, {
-        placeHolder: `Edit ${blog.name}`
+        placeHolder: vscode.l10n.t('Edit {0}', blog.name)
     });
 
     if (!editChoice) {
@@ -773,9 +890,9 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
     }
 
     switch (editChoice) {
-        case 'Change Name':
+        case vscode.l10n.t('Change Name'):
             const newName = await vscode.window.showInputBox({
-                prompt: 'Enter new name',
+                prompt: vscode.l10n.t('Enter new name'),
                 value: blog.name
             });
             if (newName) {
@@ -783,9 +900,9 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
             }
             break;
 
-        case 'Update URL/ID':
+        case vscode.l10n.t('Update URL/ID'):
             const newId = await vscode.window.showInputBox({
-                prompt: 'Enter new URL/ID',
+                prompt: vscode.l10n.t('Enter new URL/ID'),
                 value: blog.id
             });
             if (newId) {
@@ -793,9 +910,9 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
             }
             break;
 
-        case 'Update Username':
+        case vscode.l10n.t('Update Username'):
             const newUsername = await vscode.window.showInputBox({
-                prompt: 'Enter new username',
+                prompt: vscode.l10n.t('Enter new username'),
                 value: blog.username
             });
             if (newUsername !== undefined) {
@@ -803,16 +920,16 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
             }
             break;
 
-        case 'Update Password/Token':
+        case vscode.l10n.t('Update Password/Token'):
             const credential = await vscode.window.showInputBox({
-                prompt: `Enter new ${blog.platform} password/token`,
+                prompt: vscode.l10n.t('Enter new {0} password/token', blog.platform),
                 password: true
             });
             if (credential) {
                 const credType = blog.platform === 'wordpress' ? 'password' : 'apikey';
                 const secretKey = getSecretKey(blog.platform, blog.name, credType);
                 await context.secrets.store(secretKey, credential);
-                vscode.window.showInformationMessage('Credential updated successfully.');
+                vscode.window.showInformationMessage(vscode.l10n.t('Credential updated successfully.'));
                 return;
             }
             break;
@@ -820,19 +937,19 @@ async function editBlogConfiguration(config: vscode.WorkspaceConfiguration, cont
 
     blogs[index] = blog;
     await config.update('blogs', blogs, vscode.ConfigurationTarget.Global);
-    vscode.window.showInformationMessage('Blog configuration updated successfully!');
+    vscode.window.showInformationMessage(vscode.l10n.t('Blog configuration updated successfully!'));
 }
 
 async function removeBlogConfiguration(config: vscode.WorkspaceConfiguration) {
     const blogs = config.get<BlogConfig[]>('blogs', []);
     if (blogs.length === 0) {
-        vscode.window.showInformationMessage('No blog configurations found.');
+        vscode.window.showInformationMessage(vscode.l10n.t('No blog configurations found.'));
         return;
     }
 
     const blogNames = blogs.map(b => `${b.name} (${b.platform})`);
     const selected = await vscode.window.showQuickPick(blogNames, {
-        placeHolder: 'Select blog to remove'
+        placeHolder: vscode.l10n.t('Select blog to remove')
     });
 
     if (!selected) {
@@ -840,16 +957,16 @@ async function removeBlogConfiguration(config: vscode.WorkspaceConfiguration) {
     }
 
     const confirm = await vscode.window.showWarningMessage(
-        `Remove blog configuration "${selected}"?`,
+        vscode.l10n.t('Remove blog configuration "{0}"?', selected),
         { modal: true },
-        'Remove'
+        vscode.l10n.t('Remove')
     );
 
-    if (confirm === 'Remove') {
+    if (confirm === vscode.l10n.t('Remove')) {
         const index = blogNames.indexOf(selected);
         blogs.splice(index, 1);
         await config.update('blogs', blogs, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('Blog configuration removed.');
+        vscode.window.showInformationMessage(vscode.l10n.t('Blog configuration removed.'));
     }
 }
 
@@ -901,9 +1018,9 @@ async function migrateLegacySettings(config: vscode.WorkspaceConfiguration, cont
     if (migrated) {
         await config.update('blogs', blogs, vscode.ConfigurationTarget.Global);
         const platforms = migratedPlatforms.join(' and ');
-        vscode.window.showInformationMessage(`Legacy ${platforms} settings migrated to new blog configuration format!`);
+        vscode.window.showInformationMessage(vscode.l10n.t('Legacy {0} settings migrated to new blog configuration format!', platforms));
     } else {
-        vscode.window.showInformationMessage('No legacy settings found to migrate.');
+        vscode.window.showInformationMessage(vscode.l10n.t('No legacy settings found to migrate.'));
     }
 }
 
@@ -913,12 +1030,12 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
     const password = await context.secrets.get(WORDPRESS_PASSWORD_KEY);
 
     if (!url || !username) {
-        vscode.window.showErrorMessage('WordPress configuration is incomplete. Please configure your WordPress URL and username in settings.');
+        vscode.window.showErrorMessage(vscode.l10n.t('WordPress configuration is incomplete. Please configure your WordPress URL and username in settings.'));
         return;
     }
 
     if (!password) {
-        vscode.window.showErrorMessage('WordPress password not set. Please run "Live Blog Writer: Set WordPress Password" command first.');
+        vscode.window.showErrorMessage(vscode.l10n.t('WordPress password not set. Please run "Live Blog Writer: Set WordPress Password" command first.'));
         return;
     }
 
@@ -946,14 +1063,14 @@ async function publishToWordPress(postData: any, config: vscode.WorkspaceConfigu
 
     const result = await service.createPost(postData.title, postData.content, options);
     
-    vscode.window.showInformationMessage(`Post published successfully to WordPress! Post ID: ${result.id}`);
+    vscode.window.showInformationMessage(vscode.l10n.t('Post published successfully to WordPress! Post ID: {0}', result.id));
 }
 
 async function publishToBlogger(postData: any, config: vscode.WorkspaceConfiguration, context: vscode.ExtensionContext) {
     const blogId = config.get<string>('blogger.blogId');
 
     if (!blogId) {
-        vscode.window.showErrorMessage('Blogger Blog ID is not configured. Please configure it in settings.');
+        vscode.window.showErrorMessage(vscode.l10n.t('Blogger Blog ID is not configured. Please configure it in settings.'));
         return;
     }
 
@@ -963,8 +1080,7 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
         accessToken = await googleOAuthService.authenticate();
     } catch (error) {
         vscode.window.showErrorMessage(
-            `Failed to authenticate with Google: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
-            'Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.'
+            vscode.l10n.t('Failed to authenticate with Google: {0}. Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.', error instanceof Error ? error.message : 'Unknown error')
         );
         return;
     }
@@ -1010,14 +1126,14 @@ async function publishToBlogger(postData: any, config: vscode.WorkspaceConfigura
 
     const result = await service.createPost(postData.title, postData.content, options);
     
-    const statusMessage = options.isDraft ? 'saved as draft' : 'published';
-    vscode.window.showInformationMessage(`Post ${statusMessage} successfully to Blogger! Post ID: ${result.id}`);
+    const statusMessage = options.isDraft ? vscode.l10n.t('saved as draft') : vscode.l10n.t('published');
+    vscode.window.showInformationMessage(vscode.l10n.t('Post {0} successfully to Blogger! Post ID: {1}', statusMessage, result.id));
 }
 
 // New publish functions using BlogConfig
 async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
     if (!blogConfig.id || !blogConfig.username) {
-        vscode.window.showErrorMessage('WordPress configuration is incomplete. Please update the blog configuration.');
+        vscode.window.showErrorMessage(vscode.l10n.t('WordPress configuration is incomplete. Please update the blog configuration.'));
         return;
     }
 
@@ -1025,7 +1141,7 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
     const password = await context.secrets.get(secretKey);
 
     if (!password) {
-        vscode.window.showErrorMessage('WordPress password not set. Please set it using the blog configuration manager or "Set WordPress Password" command.');
+        vscode.window.showErrorMessage(vscode.l10n.t('WordPress password not set. Please set it using the blog configuration manager or "Set WordPress Password" command.'));
         return;
     }
 
@@ -1063,24 +1179,24 @@ async function publishToWordPressNew(postData: any, blogConfig: BlogConfig, cont
         const postUrl = result.link || postData.postUrl;
         if (postUrl) {
             const action = await vscode.window.showInformationMessage(
-                `Post updated successfully on ${blogConfig.name}!`,
-                'View Post'
+                vscode.l10n.t('Post updated successfully on {0}!', blogConfig.name),
+                vscode.l10n.t('View Post')
             );
-            if (action === 'View Post') {
+            if (action === vscode.l10n.t('View Post')) {
                 vscode.env.openExternal(vscode.Uri.parse(postUrl));
             }
         } else {
-            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+            vscode.window.showInformationMessage(vscode.l10n.t('Post updated successfully on {0}!', blogConfig.name));
         }
     } else {
         const result = await service.createPost(postData.title, postData.content, options);
-        vscode.window.showInformationMessage(`Post published successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+        vscode.window.showInformationMessage(vscode.l10n.t('Post published successfully to {0}! Post ID: {1}', blogConfig.name, result.id));
     }
 }
 
 async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
     if (!blogConfig.id) {
-        vscode.window.showErrorMessage('Blogger Blog ID is not configured. Please update the blog configuration.');
+        vscode.window.showErrorMessage(vscode.l10n.t('Blogger Blog ID is not configured. Please update the blog configuration.'));
         return;
     }
 
@@ -1090,8 +1206,7 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
         accessToken = await googleOAuthService.authenticate();
     } catch (error) {
         vscode.window.showErrorMessage(
-            `Failed to authenticate with Google: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
-            'Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.'
+            vscode.l10n.t('Failed to authenticate with Google: {0}. Please run the "Live Blog Writer: Authenticate with Blogger" command to sign in.', error instanceof Error ? error.message : 'Unknown error')
         );
         return;
     }
@@ -1148,25 +1263,25 @@ async function publishToBloggerNew(postData: any, blogConfig: BlogConfig, contex
         const postUrl = postData.postUrl;
         if (postUrl) {
             const action = await vscode.window.showInformationMessage(
-                `Post updated successfully on ${blogConfig.name}!`,
-                'View Post'
+                vscode.l10n.t('Post updated successfully on {0}!', blogConfig.name),
+                vscode.l10n.t('View Post')
             );
-            if (action === 'View Post') {
+            if (action === vscode.l10n.t('View Post')) {
                 vscode.env.openExternal(vscode.Uri.parse(postUrl));
             }
         } else {
-            vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!`);
+            vscode.window.showInformationMessage(vscode.l10n.t('Post updated successfully on {0}!', blogConfig.name));
         }
     } else {
         const result = await service.createPost(postData.title, postData.content, options);
-        const statusMessage = options.isDraft ? 'saved as draft' : 'published';
-        vscode.window.showInformationMessage(`Post ${statusMessage} successfully to ${blogConfig.name}! Post ID: ${result.id}`);
+        const statusMessage = options.isDraft ? vscode.l10n.t('saved as draft') : vscode.l10n.t('published');
+        vscode.window.showInformationMessage(vscode.l10n.t('Post {0} successfully to {1}! Post ID: {2}', statusMessage, blogConfig.name, result.id));
     }
 }
 
 async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
     if (!blogConfig.id) {
-        vscode.window.showErrorMessage('Ghost site URL is not configured. Please update the blog configuration.');
+        vscode.window.showErrorMessage(vscode.l10n.t('Ghost site URL is not configured. Please update the blog configuration.'));
         return;
     }
 
@@ -1174,7 +1289,7 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
     const apiKey = await context.secrets.get(secretKey);
 
     if (!apiKey) {
-        vscode.window.showErrorMessage(`Ghost API key not set for "${blogConfig.name}". Please run "Set Ghost API Key" command.`);
+        vscode.window.showErrorMessage(vscode.l10n.t('Ghost API key not set for "{0}". Please run "Set Ghost API Key" command.', blogConfig.name));
         return;
     }
 
@@ -1200,7 +1315,7 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
         const currentPost = await service.getPost(postId as string);
         
         if (!currentPost.updated_at) {
-            vscode.window.showErrorMessage('Failed to get current post timestamp. Ghost requires this to prevent conflicts.');
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to get current post timestamp. Ghost requires this to prevent conflicts.'));
             return;
         }
         
@@ -1213,18 +1328,19 @@ async function publishToGhost(postData: any, blogConfig: BlogConfig, context: vs
                 updatedAt: currentPost.updated_at
             }
         );
-        vscode.window.showInformationMessage(`Post updated successfully on ${blogConfig.name}!\nURL: ${result.url}`);
+        vscode.window.showInformationMessage(vscode.l10n.t('Post updated successfully on {0}!\nURL: {1}', blogConfig.name, result.url));
     } else {
         const result = await service.createPost(postData.title, postData.content, options);
+        const ghostStatusMessage = status === 'draft' ? vscode.l10n.t('saved as draft') : status;
         vscode.window.showInformationMessage(
-            `Post ${status === 'draft' ? 'saved as draft' : status} successfully to ${blogConfig.name}!\nURL: ${result.url}`
+            vscode.l10n.t('Post {0} successfully to {1}!\nURL: {2}', ghostStatusMessage, blogConfig.name, result.url)
         );
     }
 }
 
 async function publishToSubstack(postData: any, blogConfig: BlogConfig, context: vscode.ExtensionContext) {
     if (!blogConfig.id) {
-        vscode.window.showErrorMessage('Substack hostname is not configured. Please update the blog configuration.');
+        vscode.window.showErrorMessage(vscode.l10n.t('Substack hostname is not configured. Please update the blog configuration.'));
         return;
     }
 
@@ -1234,7 +1350,7 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
     hostname = hostname.replace(/\/$/, ''); // Remove trailing slash
     
     if (!hostname) {
-        vscode.window.showErrorMessage('Invalid Substack hostname. Please update the blog configuration.');
+        vscode.window.showErrorMessage(vscode.l10n.t('Invalid Substack hostname. Please update the blog configuration.'));
         return;
     }
 
@@ -1257,7 +1373,7 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
         service = new SubstackService({ connectSid: cookie }, hostname);
     } else {
         vscode.window.showErrorMessage(
-            `Substack credentials not set for "${blogConfig.name}". Please run "Set Substack API Key" command.`
+            vscode.l10n.t('Substack credentials not set for "{0}". Please run "Set Substack API Key" command.', blogConfig.name)
         );
         return;
     }
@@ -1273,8 +1389,9 @@ async function publishToSubstack(postData: any, blogConfig: BlogConfig, context:
 
     const result = await service.createPost(postData.title, postData.content, options);
     
+    const substackStatusMessage = isDraft ? vscode.l10n.t('saved as draft') : vscode.l10n.t('published');
     vscode.window.showInformationMessage(
-        `Post ${isDraft ? 'saved as draft' : 'published'} successfully to ${blogConfig.name}!\nURL: ${result.url}`
+        vscode.l10n.t('Post {0} successfully to {1}!\nURL: {2}', substackStatusMessage, blogConfig.name, result.url)
     );
 }
 
@@ -1284,7 +1401,7 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
 
     if (!apiKey) {
         vscode.window.showErrorMessage(
-            `Dev.to API key not set for "${blogConfig.name}". Please use Blog Connections to set it, or run "Live Blog Writer: Set Dev.to API Key".`
+            vscode.l10n.t('Dev.to API key not set for "{0}". Please use Blog Connections to set it, or run "Live Blog Writer: Set Dev.to API Key".', blogConfig.name)
         );
         return;
     }
@@ -1314,7 +1431,7 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
 
         const url = result?.url || result?.canonical_url;
         vscode.window.showInformationMessage(
-            `Post updated successfully on ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
+            url ? vscode.l10n.t('Post updated successfully on {0}!\nURL: {1}', blogConfig.name, url) : vscode.l10n.t('Post updated successfully on {0}!', blogConfig.name)
         );
     } else {
         const result = await service.createArticle({
@@ -1326,8 +1443,9 @@ async function publishToDevTo(postData: any, blogConfig: BlogConfig, context: vs
         });
 
         const url = result?.url || result?.canonical_url;
+        const devtoStatusMessage = published ? vscode.l10n.t('published') : vscode.l10n.t('saved as draft');
         vscode.window.showInformationMessage(
-            `Post ${published ? 'published' : 'saved as draft'} successfully to ${blogConfig.name}!${url ? `\nURL: ${url}` : ''}`
+            url ? vscode.l10n.t('Post {0} successfully to {1}!\nURL: {2}', devtoStatusMessage, blogConfig.name, url) : vscode.l10n.t('Post {0} successfully to {1}!', devtoStatusMessage, blogConfig.name)
         );
     }
 }
@@ -1378,11 +1496,10 @@ async function checkBloggerCredentials(context: vscode.ExtensionContext) {
         // Only show warning if not authenticated AND not using custom credentials AND default credentials are missing
         if (!hasCredentials && !isUsingCustom && !googleOAuthService.hasDefaultCredentials()) {
             vscode.window.showWarningMessage(
-                'Blogger OAuth credentials are not configured. Blogger blog functionality will not work. ' +
-                'Please contact the extension maintainer or configure custom OAuth credentials.',
-                'Learn More'
+                vscode.l10n.t('Blogger OAuth credentials are not configured. Blogger blog functionality will not work. Please contact the extension maintainer or configure custom OAuth credentials.'),
+                vscode.l10n.t('Learn More')
             ).then(selection => {
-                if (selection === 'Learn More') {
+                if (selection === vscode.l10n.t('Learn More')) {
                     vscode.env.openExternal(vscode.Uri.parse('https://github.com/alvinashcraft/live-blog-writer/blob/main/docs/OAUTH_CREDENTIALS_SETUP.md'));
                 }
             });

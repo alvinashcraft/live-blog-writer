@@ -126,7 +126,7 @@ export class DraftManager {
             }
         } catch (error) {
             console.error('Failed to create drafts folder:', error);
-            vscode.window.showErrorMessage('Failed to create drafts folder in Documents.');
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to create drafts folder in Documents.'));
         }
     }
 

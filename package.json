@@ -1,9 +1,9 @@
 {
   "name": "live-blog-writer",
   "displayName": "Live Blog Writer",
-  "description": "Blog writer extension with WYSIWYG editor for VS Code with support for WordPress, Blogger, Ghost, and Substack blogs",
+  "description": "Blog writer extension with WYSIWYG and Markdown editors for VS Code. Publish to WordPress, Blogger, Ghost, Substack, and Dev.to. Supports localization, post templates, and multiple blogs.",
   "icon": "images/writerIcon.png",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -29,7 +29,11 @@
     "markdown",
     "writing",
     "devto",
-    "dev.to"
+    "dev.to",
+    "localization",
+    "i18n",
+    "templates",
+    "spanish"
   ],
   "engines": {
     "vscode": "^1.85.0"
@@ -44,63 +48,104 @@
   "qna": "marketplace",
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "l10n": "./l10n",
   "contributes": {
     "commands": [
       {
         "command": "live-blog-writer.newPost",
-        "title": "Live Blog Writer: New Blog Post"
+        "title": "%command.newPost.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.publishPost",
-        "title": "Live Blog Writer: Publish Post"
+        "title": "%command.publishPost.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.setWordPressPassword",
-        "title": "Live Blog Writer: Set WordPress Password"
+        "title": "%command.setWordPressPassword.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.setBloggerClientId",
-        "title": "Live Blog Writer: Set Custom Blogger Credentials (Advanced)"
+        "title": "%command.setBloggerClientId.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.authenticateBlogger",
-        "title": "Live Blog Writer: Authenticate with Blogger"
+        "title": "%command.authenticateBlogger.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.openRecentDraft",
-        "title": "Live Blog Writer: Open Recent Draft"
+        "title": "%command.openRecentDraft.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.manageDrafts",
-        "title": "Live Blog Writer: Manage Drafts"
+        "title": "%command.manageDrafts.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.saveDraft",
-        "title": "Live Blog Writer: Save Draft"
+        "title": "%command.saveDraft.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.manageBlogConfigurations",
-        "title": "Live Blog Writer: Manage Blog Connections"
+        "title": "%command.manageBlogConfigurations.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.setGhostApiKey",
-        "title": "Live Blog Writer: Set Ghost API Key"
+        "title": "%command.setGhostApiKey.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.setSubstackApiKey",
-        "title": "Live Blog Writer: Set Substack Credentials"
+        "title": "%command.setSubstackApiKey.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.setDevToApiKey",
-        "title": "Live Blog Writer: Set Dev.to API Key"
+        "title": "%command.setDevToApiKey.title%",
+        "category": "%command.category%"
       },
       {
         "command": "live-blog-writer.editPublishedPost",
-        "title": "Live Blog Writer: Edit Published Post"
+        "title": "%command.editPublishedPost.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "live-blog-writer.saveAsTemplate",
+        "title": "%command.saveAsTemplate.title%",
+        "category": "%command.category%"
+      },
+      {
+        "command": "live-blog-writer.newPostFromTemplate",
+        "title": "%command.newPostFromTemplate.title%",
+        "category": "%command.category%"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "live-blog-writer.newPost",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n"
+      },
+      {
+        "command": "live-blog-writer.saveDraft",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s"
+      },
+      {
+        "command": "live-blog-writer.publishPost",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p"
       }
     ],
     "configuration": {
-      "title": "Live Blog Writer",
+      "title": "%configuration.title%",
       "properties": {
         "liveBlogWriter.platform": {
           "type": "string",
@@ -112,19 +157,19 @@
             "substack",
             "devto"
           ],
-          "description": "[DEPRECATED] Blog platform to publish to. Use liveBlogWriter.blogs for multiple blog support.",
-          "deprecationMessage": "Use liveBlogWriter.blogs array instead for better multi-blog support"
+          "description": "%configuration.platform.description%",
+          "deprecationMessage": "%configuration.platform.deprecationMessage%"
         },
         "liveBlogWriter.blogs": {
           "type": "array",
           "default": [],
-          "description": "Array of blog configurations. Each entry should have: name, platform, id (optional), username (optional)",
+          "description": "%configuration.blogs.description%",
           "items": {
             "type": "object",
             "properties": {
               "name": {
                 "type": "string",
-                "description": "Display name for this blog configuration"
+                "description": "%configuration.blogs.name.description%"
               },
               "platform": {
                 "type": "string",
@@ -135,15 +180,15 @@
                   "substack",
                   "devto"
                 ],
-                "description": "Blog platform type"
+                "description": "%configuration.blogs.platform.description%"
               },
               "id": {
                 "type": "string",
-                "description": "Blog ID (for Blogger), URL (for WordPress/Ghost), or hostname (for Substack)."
+                "description": "%configuration.blogs.id.description%"
               },
               "username": {
                 "type": "string",
-                "description": "Username (for WordPress, Substack). Optional for others."
+                "description": "%configuration.blogs.username.description%"
               }
             },
             "required": [
@@ -155,25 +200,25 @@
         "liveBlogWriter.defaultBlog": {
           "type": "string",
           "default": "",
-          "description": "Default blog name to use when publishing. Must match the 'name' field of a blog in liveBlogWriter.blogs. If not set or not found, you'll be prompted to select a blog."
+          "description": "%configuration.defaultBlog.description%"
         },
         "liveBlogWriter.wordpress.url": {
           "type": "string",
           "default": "",
-          "description": "[DEPRECATED] WordPress site URL. Use liveBlogWriter.blogs instead.",
-          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
+          "description": "%configuration.wordpress.url.description%",
+          "deprecationMessage": "%configuration.wordpress.url.deprecationMessage%"
         },
         "liveBlogWriter.wordpress.username": {
           "type": "string",
           "default": "",
-          "description": "[DEPRECATED] WordPress username. Use liveBlogWriter.blogs instead.",
-          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
+          "description": "%configuration.wordpress.username.description%",
+          "deprecationMessage": "%configuration.wordpress.username.deprecationMessage%"
         },
         "liveBlogWriter.blogger.blogId": {
           "type": "string",
           "default": "",
-          "description": "[DEPRECATED] Blogger Blog ID. Use liveBlogWriter.blogs instead.",
-          "deprecationMessage": "Use liveBlogWriter.blogs array instead"
+          "description": "%configuration.blogger.blogId.description%",
+          "deprecationMessage": "%configuration.blogger.blogId.deprecationMessage%"
         }
       }
     }
