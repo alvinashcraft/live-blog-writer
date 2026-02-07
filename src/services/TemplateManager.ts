@@ -129,7 +129,10 @@ export class TemplateManager {
             fs.writeFileSync(this.metadataFile, data, 'utf8');
         } catch (error) {
             console.error('Failed to save template metadata:', error);
-            throw new Error('Failed to save template metadata');
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error(String(error));
         }
     }
 
