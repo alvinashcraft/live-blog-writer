@@ -41,15 +41,21 @@ interface BlogConfig {
 }
 
 let draftManager: DraftManager;
-let templateManager: TemplateManager;
+let templateManager: TemplateManager | undefined;
 let googleOAuthService: GoogleOAuthService;
+
+function getTemplateManager(): TemplateManager {
+    if (!templateManager) {
+        templateManager = new TemplateManager();
+    }
+    return templateManager;
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Live Blog Writer extension is now active!');
     
-    // Initialize draft manager, template manager and OAuth service
+    // Initialize draft manager and OAuth service
     draftManager = new DraftManager();
-    templateManager = new TemplateManager();
     googleOAuthService = new GoogleOAuthService(context);
 
     // Check if Blogger OAuth credentials are configured
@@ -630,7 +636,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            await templateManager.saveTemplate(templateName.trim(), {
+            await getTemplateManager().saveTemplate(templateName.trim(), {
                 title: postData.title,
                 content: postData.content,
                 contentFormat: postData.contentFormat,
@@ -648,7 +654,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to create a new post from a template
     let newPostFromTemplateCommand = vscode.commands.registerCommand('live-blog-writer.newPostFromTemplate', async () => {
         try {
-            const templates = await templateManager.listTemplates();
+            const templates = await getTemplateManager().listTemplates();
 
             if (templates.length === 0) {
                 vscode.window.showInformationMessage(vscode.l10n.t('No templates found. Use "Save as Template" to create one.'));
@@ -671,7 +677,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            const templateContent = await templateManager.loadTemplate(selected.template.id);
+            const templateContent = await getTemplateManager().loadTemplate(selected.template.id);
             if (!templateContent) {
                 vscode.window.showErrorMessage(vscode.l10n.t('Failed to load the selected template.'));
                 return;
