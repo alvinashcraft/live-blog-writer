@@ -395,7 +395,7 @@ export class BlogEditorPanel {
             this._currentDraftId = undefined; // New edit, no draft ID yet
             this._panel.title = `Blog Editor - ${draftData.title || 'Untitled'}`;
 
-            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title));
+            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || 'Untitled'));
         } catch (error) {
             vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
