@@ -2,6 +2,33 @@
 
 All notable changes to the "live-blog-writer" extension will be documented in this file.
 
+## [1.4.0] - 2026-03-01
+
+### ✨ Added
+
+- **Localization: German, Portuguese, Italian, French**: Four new languages added to the extension
+  - German (de) — `package.nls.de.json` + `l10n/bundle.l10n.de.json`
+  - Portuguese (pt) — `package.nls.pt.json` + `l10n/bundle.l10n.pt.json`
+  - Italian (it) — `package.nls.it.json` + `l10n/bundle.l10n.it.json`
+  - French (fr) — `package.nls.fr.json` + `l10n/bundle.l10n.fr.json`
+  - Extension now supports 6 languages total (English, Spanish, German, Portuguese, Italian, French)
+
+### 🔧 Changed
+
+- **Improved localization coverage**: Localized previously hardcoded webview UI strings
+  - Blog Editor panel: labels, buttons, hints, and status options now localized
+  - Blog Connections panel: headings, form labels, buttons, messages, and platform field labels now localized
+  - Webview inline JavaScript strings now localized via injected constants
+  - "Last modified:" prefix in draft listings now localized
+- Updated marketplace keywords to include new language names
+
+### 📚 Documentation
+
+- Updated README.md with all 6 supported languages
+- Updated roadmap to reflect completed language translations
+- Added localization contribution guide to CONTRIBUTING.md
+- Updated CHANGELOG.md with v1.4.0 release notes
+
 ## [1.3.0] - 2026-02-07
 
 ### ✨ Added
