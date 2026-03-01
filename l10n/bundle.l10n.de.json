@@ -50,7 +50,6 @@
   "Substack credentials not configured. Please set up authentication and try again.": "Substack-Anmeldedaten nicht konfiguriert. Bitte richten Sie die Authentifizierung ein und versuchen Sie es erneut.",
   "Substack hostname not configured. Please update your blog settings and try again.": "Substack-Hostname nicht konfiguriert. Bitte aktualisieren Sie Ihre Blog-Einstellungen und versuchen Sie es erneut.",
   "WordPress credentials incomplete. Please configure WordPress and try again.": "WordPress-Anmeldedaten unvollständig. Bitte konfigurieren Sie WordPress und versuchen Sie es erneut.",
-
   "WordPress password saved securely for \"{0}\".": "WordPress-Passwort für \"{0}\" sicher gespeichert.",
   "Successfully authenticated with Google for Blogger!": "Erfolgreich bei Google für Blogger authentifiziert!",
   "Custom OAuth credentials saved. Please re-authenticate with your credentials.": "Benutzerdefinierte OAuth-Anmeldedaten gespeichert. Bitte authentifizieren Sie sich erneut mit Ihren Anmeldedaten.",
@@ -83,14 +82,12 @@
   "Template \"{0}\" saved successfully.": "Vorlage \"{0}\" erfolgreich gespeichert.",
   "No templates found. Use \"Save as Template\" to create one.": "Keine Vorlagen gefunden. Verwenden Sie \"Save as Template\", um eine zu erstellen.",
   "Loaded: {0}": "Geladen: {0}",
-
   "Default blog '{0}' not found in configured blogs.": "Standard-Blog '{0}' nicht in den konfigurierten Blogs gefunden.",
   "You are currently using custom OAuth credentials. What would you like to do?": "Sie verwenden derzeit benutzerdefinierte OAuth-Anmeldedaten. Was möchten Sie tun?",
   "This extension comes with built-in OAuth credentials. You only need custom credentials if you want to use your own Google Cloud project.\n\nDo you want to set up custom credentials?": "Diese Erweiterung enthält integrierte OAuth-Anmeldedaten. Sie benötigen nur benutzerdefinierte Anmeldedaten, wenn Sie Ihr eigenes Google Cloud-Projekt verwenden möchten.\n\nMöchten Sie benutzerdefinierte Anmeldedaten einrichten?",
   "Blogger OAuth credentials are not configured. Blogger blog functionality will not work. Please contact the extension maintainer or configure custom OAuth credentials.": "Die Blogger OAuth-Anmeldedaten sind nicht konfiguriert. Die Blogger-Blog-Funktionalität wird nicht funktionieren. Bitte kontaktieren Sie den Erweiterungsbetreuer oder konfigurieren Sie benutzerdefinierte OAuth-Anmeldedaten.",
   "Delete all drafts older than 30 days?": "Alle Entwürfe löschen, die älter als 30 Tage sind?",
   "Remove blog configuration \"{0}\"?": "Blog-Konfiguration \"{0}\" entfernen?",
-
   "View Post": "Beitrag anzeigen",
   "Delete": "Löschen",
   "Remove": "Entfernen",
@@ -100,7 +97,6 @@
   "Learn More": "Mehr erfahren",
   "Update Credentials": "Anmeldedaten aktualisieren",
   "Revert to Default": "Auf Standard zurücksetzen",
-
   "Select which WordPress blog to set the password for": "Wählen Sie den WordPress-Blog aus, für den Sie das Passwort festlegen möchten",
   "WordPress application password": "WordPress-Anwendungspasswort",
   "Select blog to publish to": "Wählen Sie den Blog zum Veröffentlichen aus",
@@ -125,8 +121,8 @@
   "Select blog to edit": "Wählen Sie den Blog zum Bearbeiten aus",
   "Select blog to remove": "Wählen Sie den Blog zum Entfernen aus",
   "Select blog platform": "Wählen Sie die Blog-Plattform aus",
-  "e.g., My Personal Blog": "z.\u00A0B. Mein persönlicher Blog",
-  "e.g., Weekly Newsletter": "z.\u00A0B. Wöchentlicher Newsletter",
+  "e.g., My Personal Blog": "z. B. Mein persönlicher Blog",
+  "e.g., Weekly Newsletter": "z. B. Wöchentlicher Newsletter",
   "Enter a name for this blog configuration": "Geben Sie einen Namen für diese Blog-Konfiguration ein",
   "Enter a name for this template": "Geben Sie einen Namen für diese Vorlage ein",
   "Enter WordPress site URL": "Geben Sie die WordPress-Website-URL ein",
@@ -159,7 +155,6 @@
   "published": "veröffentlicht",
   "Select a template": "Wählen Sie eine Vorlage aus",
   "Created: {0}": "Erstellt: {0}",
-
   "Blog Connections": "Blog-Verbindungen",
   "A blog with this name already exists": "Ein Blog mit diesem Namen existiert bereits",
   "Blog added successfully": "Blog erfolgreich hinzugefügt",
@@ -214,7 +209,6 @@
   "Your Substack username (optional)": "Ihr Substack-Benutzername (optional)",
   "Optional: used only for display": "Optional: Wird nur zur Anzeige verwendet",
   "Application Password": "Anwendungspasswort",
-  "WordPress application password": "WordPress-Anwendungspasswort",
   "OAuth (handled automatically)": "OAuth (wird automatisch verwaltet)",
   "OAuth authentication is managed automatically": "Die OAuth-Authentifizierung wird automatisch verwaltet",
   "Admin API Key": "Admin API-Schlüssel",
@@ -227,7 +221,6 @@
   "Starting Blogger authentication...": "Blogger-Authentifizierung wird gestartet...",
   "Testing connection...": "Verbindung wird getestet...",
   "Are you sure you want to delete \"{0}\"?": "Möchten Sie \"{0}\" wirklich löschen?",
-
   "Last modified: {0} {1}": "Zuletzt geändert: {0} {1}",
   "Blog Editor": "Blog-Editor",
   "Untitled": "Ohne Titel",
@@ -263,5 +256,6 @@
   "Select a blog to load its published posts": "Wählen Sie einen Blog aus, um dessen veröffentlichte Beiträge zu laden",
   "Load Post": "Beitrag laden",
   "Loading posts...": "Beiträge werden geladen...",
-  "No published posts found": "Keine veröffentlichten Beiträge gefunden"
+  "No published posts found": "Keine veröffentlichten Beiträge gefunden",
+  "Blog Editor - {0}": "Blog-Editor - {0}"
 }

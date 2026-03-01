@@ -50,7 +50,6 @@
   "Substack credentials not configured. Please set up authentication and try again.": "Identifiants Substack non configurés. Veuillez configurer l'authentification et réessayer.",
   "Substack hostname not configured. Please update your blog settings and try again.": "Nom d'hôte Substack non configuré. Veuillez mettre à jour les paramètres de votre blog et réessayer.",
   "WordPress credentials incomplete. Please configure WordPress and try again.": "Identifiants WordPress incomplets. Veuillez configurer WordPress et réessayer.",
-
   "WordPress password saved securely for \"{0}\".": "Mot de passe WordPress enregistré de manière sécurisée pour \"{0}\".",
   "Successfully authenticated with Google for Blogger!": "Authentification avec Google pour Blogger réussie !",
   "Custom OAuth credentials saved. Please re-authenticate with your credentials.": "Identifiants OAuth personnalisés enregistrés. Veuillez vous réauthentifier avec vos identifiants.",
@@ -83,14 +82,12 @@
   "Template \"{0}\" saved successfully.": "Modèle \"{0}\" enregistré avec succès.",
   "No templates found. Use \"Save as Template\" to create one.": "Aucun modèle trouvé. Utilisez \"Save as Template\" pour en créer un.",
   "Loaded: {0}": "Chargé : {0}",
-
   "Default blog '{0}' not found in configured blogs.": "Blog par défaut '{0}' introuvable dans les blogs configurés.",
   "You are currently using custom OAuth credentials. What would you like to do?": "Vous utilisez actuellement des identifiants OAuth personnalisés. Que souhaitez-vous faire ?",
   "This extension comes with built-in OAuth credentials. You only need custom credentials if you want to use your own Google Cloud project.\n\nDo you want to set up custom credentials?": "Cette extension est fournie avec des identifiants OAuth intégrés. Vous n'avez besoin d'identifiants personnalisés que si vous souhaitez utiliser votre propre projet Google Cloud.\n\nVoulez-vous configurer des identifiants personnalisés ?",
   "Blogger OAuth credentials are not configured. Blogger blog functionality will not work. Please contact the extension maintainer or configure custom OAuth credentials.": "Les identifiants OAuth Blogger ne sont pas configurés. La fonctionnalité de blog Blogger ne fonctionnera pas. Veuillez contacter le mainteneur de l'extension ou configurer des identifiants OAuth personnalisés.",
   "Delete all drafts older than 30 days?": "Supprimer tous les brouillons de plus de 30 jours ?",
   "Remove blog configuration \"{0}\"?": "Supprimer la configuration de blog \"{0}\" ?",
-
   "View Post": "Voir l'article",
   "Delete": "Supprimer",
   "Remove": "Retirer",
@@ -100,7 +97,6 @@
   "Learn More": "En savoir plus",
   "Update Credentials": "Mettre à jour les identifiants",
   "Revert to Default": "Restaurer les valeurs par défaut",
-
   "Select which WordPress blog to set the password for": "Sélectionnez le blog WordPress pour lequel définir le mot de passe",
   "WordPress application password": "Mot de passe d'application WordPress",
   "Select blog to publish to": "Sélectionnez le blog sur lequel publier",
@@ -159,7 +155,6 @@
   "published": "publié",
   "Select a template": "Sélectionnez un modèle",
   "Created: {0}": "Créé : {0}",
-
   "Blog Connections": "Connexions de blog",
   "A blog with this name already exists": "Un blog avec ce nom existe déjà",
   "Blog added successfully": "Blog ajouté avec succès",
@@ -214,7 +209,6 @@
   "Your Substack username (optional)": "Votre nom d'utilisateur Substack (facultatif)",
   "Optional: used only for display": "Facultatif : utilisé uniquement pour l'affichage",
   "Application Password": "Mot de passe d'application",
-  "WordPress application password": "Mot de passe d'application WordPress",
   "OAuth (handled automatically)": "OAuth (géré automatiquement)",
   "OAuth authentication is managed automatically": "L'authentification OAuth est gérée automatiquement",
   "Admin API Key": "Clé API d'administration",
@@ -227,7 +221,6 @@
   "Starting Blogger authentication...": "Démarrage de l'authentification Blogger...",
   "Testing connection...": "Test de la connexion...",
   "Are you sure you want to delete \"{0}\"?": "Êtes-vous sûr de vouloir supprimer \"{0}\" ?",
-
   "Last modified: {0} {1}": "Dernière modification : {0} {1}",
   "Blog Editor": "Éditeur de blog",
   "Untitled": "Sans titre",
@@ -263,5 +256,6 @@
   "Select a blog to load its published posts": "Sélectionnez un blog pour charger ses articles publiés",
   "Load Post": "Charger l'article",
   "Loading posts...": "Chargement des articles...",
-  "No published posts found": "Aucun article publié trouvé"
+  "No published posts found": "Aucun article publié trouvé",
+  "Blog Editor - {0}": "Éditeur de Blog - {0}"
 }

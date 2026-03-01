@@ -393,7 +393,7 @@ export class BlogEditorPanel {
             // Update internal state
             this._postData = draftData;
             this._currentDraftId = undefined; // New edit, no draft ID yet
-            this._panel.title = vscode.l10n.t('Blog Editor') + ' - ' + (draftData.title || vscode.l10n.t('Untitled'));
+            this._panel.title = vscode.l10n.t('Blog Editor - {0}', draftData.title || vscode.l10n.t('Untitled'));
 
             vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || vscode.l10n.t('Untitled')));
         } catch (error) {
@@ -532,7 +532,7 @@ export class BlogEditorPanel {
         this._currentDraftId = draftContent.metadata.id;
         
         // Update webview title to show the draft
-        this._panel.title = vscode.l10n.t('Blog Editor') + ' - ' + (draftContent.title || vscode.l10n.t('Untitled Draft'));
+        this._panel.title = vscode.l10n.t('Blog Editor - {0}', draftContent.title || vscode.l10n.t('Untitled Draft'));
     }
 
     private startAutoSave() {
@@ -561,7 +561,7 @@ export class BlogEditorPanel {
             if (!this._currentDraftId) {
                 this._currentDraftId = draftId;
                 // Update panel title
-                this._panel.title = vscode.l10n.t('Blog Editor') + ' - ' + (this._postData.title || vscode.l10n.t('Untitled Draft'));
+                this._panel.title = vscode.l10n.t('Blog Editor - {0}', this._postData.title || vscode.l10n.t('Untitled Draft'));
             }
             
             return draftId;
@@ -585,13 +585,13 @@ export class BlogEditorPanel {
         const blogs = config.get<any[]>('blogs', []);
         const defaultBlog = config.get<string>('defaultBlog', '');
 
-        // Inject draft data if available
+        // Inject draft data if available (escape < to prevent script injection)
         const draftDataScript = this._postData ? 
-            `window.draftData = ${JSON.stringify(this._postData)};` : 
+            `window.draftData = ${JSON.stringify(this._postData).replace(/</g, '\\u003c')};` : 
             'window.draftData = null;';
         
         // Inject blog configurations and default blog
-        const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs)}; window.defaultBlog = ${JSON.stringify(defaultBlog)};`;
+        const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs).replace(/</g, '\\u003c')}; window.defaultBlog = ${JSON.stringify(defaultBlog).replace(/</g, '\\u003c')};`;
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -1001,7 +1001,7 @@ export class BlogEditorPanel {
             selectBlogToLoadPosts: vscode.l10n.t('Select a blog to load its published posts'),
             loadingPosts: vscode.l10n.t('Loading posts...'),
             noPublishedPostsFound: vscode.l10n.t('No published posts found')
-        })};
+        }).replace(/</g, '\\u003c')};
     </script>
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
     <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js" nonce="${nonce}"></script>

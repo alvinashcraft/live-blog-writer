@@ -376,11 +376,14 @@ export class BlogConnectionsPanel {
     }
 
     private _getHtmlForWebview(blogs: any[]) {
+        const nonce = getNonce();
+
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
     <title>Blog Connections</title>
     <style>
         * {
@@ -778,7 +781,7 @@ export class BlogConnectionsPanel {
         </div>
     </div>
 
-    <script>
+    <script nonce="${nonce}">
         const __l10n = ${JSON.stringify({
             wordpressUrl: vscode.l10n.t('WordPress URL'),
             username: vscode.l10n.t('Username'),
@@ -807,9 +810,9 @@ export class BlogConnectionsPanel {
             startingBloggerAuth: vscode.l10n.t('Starting Blogger authentication...'),
             testingConnection: vscode.l10n.t('Testing connection...'),
             confirmDelete: vscode.l10n.t('Are you sure you want to delete "{0}"?')
-        })};
+        }).replace(/</g, '\\u003c')};
     </script>
-    <script>
+    <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
 
         // Helper function to escape HTML/special characters in user input
@@ -1066,4 +1069,13 @@ export class BlogConnectionsPanel {
         };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
+}
+
+function getNonce() {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }
