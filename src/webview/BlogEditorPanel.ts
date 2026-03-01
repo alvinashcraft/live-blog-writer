@@ -397,7 +397,7 @@ export class BlogEditorPanel {
 
             vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || vscode.l10n.t('Untitled')));
         } catch (error) {
-            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : 'Unknown error'));
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : vscode.l10n.t('Unknown error')));
         }
     }
 
