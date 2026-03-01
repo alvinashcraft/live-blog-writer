@@ -5,6 +5,7 @@ import { BloggerService } from '../services/BloggerService';
 import { GhostService } from '../services/GhostService';
 import { SubstackService } from '../services/SubstackService';
 import { DevToService } from '../services/DevToService';
+import { getNonce } from './utils';
 
 // Helper function to get the secret key for a blog
 function getSecretKey(platform: string, blogName: string, credentialType: string): string {
@@ -61,7 +62,7 @@ export class BlogEditorPanel {
         // Otherwise, create a new panel
         const panel = vscode.window.createWebviewPanel(
             BlogEditorPanel.viewType,
-            'Blog Editor',
+            vscode.l10n.t('Blog Editor'),
             column || vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -393,11 +394,11 @@ export class BlogEditorPanel {
             // Update internal state
             this._postData = draftData;
             this._currentDraftId = undefined; // New edit, no draft ID yet
-            this._panel.title = `Blog Editor - ${draftData.title || 'Untitled'}`;
+            this._panel.title = vscode.l10n.t('Blog Editor - {0}', draftData.title || vscode.l10n.t('Untitled'));
 
-            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || 'Untitled'));
+            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || vscode.l10n.t('Untitled')));
         } catch (error) {
-            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : 'Unknown error'));
+            vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : vscode.l10n.t('Unknown error')));
         }
     }
 
@@ -532,7 +533,7 @@ export class BlogEditorPanel {
         this._currentDraftId = draftContent.metadata.id;
         
         // Update webview title to show the draft
-        this._panel.title = `Blog Editor - ${draftContent.title || 'Untitled Draft'}`;
+        this._panel.title = vscode.l10n.t('Blog Editor - {0}', draftContent.title || vscode.l10n.t('Untitled Draft'));
     }
 
     private startAutoSave() {
@@ -561,7 +562,7 @@ export class BlogEditorPanel {
             if (!this._currentDraftId) {
                 this._currentDraftId = draftId;
                 // Update panel title
-                this._panel.title = `Blog Editor - ${this._postData.title || 'Untitled Draft'}`;
+                this._panel.title = vscode.l10n.t('Blog Editor - {0}', this._postData.title || vscode.l10n.t('Untitled Draft'));
             }
             
             return draftId;
@@ -585,16 +586,16 @@ export class BlogEditorPanel {
         const blogs = config.get<any[]>('blogs', []);
         const defaultBlog = config.get<string>('defaultBlog', '');
 
-        // Inject draft data if available
+        // Inject draft data if available (escape < to prevent script injection)
         const draftDataScript = this._postData ? 
-            `window.draftData = ${JSON.stringify(this._postData)};` : 
+            `window.draftData = ${JSON.stringify(this._postData).replace(/</g, '\\u003c')};` : 
             'window.draftData = null;';
         
         // Inject blog configurations and default blog
-        const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs)}; window.defaultBlog = ${JSON.stringify(defaultBlog)};`;
+        const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs).replace(/</g, '\\u003c')}; window.defaultBlog = ${JSON.stringify(defaultBlog).replace(/</g, '\\u003c')};`;
 
         return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${vscode.env.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -888,63 +889,63 @@ export class BlogEditorPanel {
     <div class="main-container">
         <!-- Left Metadata Panel -->
         <div class="metadata-panel">
-            <h2>Post Details</h2>
+            <h2>${vscode.l10n.t('Post Details')}</h2>
             
             <div class="form-group">
-                <label for="selectedBlog">Selected Blog</label>
+                <label for="selectedBlog">${vscode.l10n.t('Selected Blog')}</label>
                 <select id="selectedBlog">
-                    <option value="">-- Select a blog --</option>
+                    <option value="">-- ${vscode.l10n.t('Select a blog')} --</option>
                 </select>
-                <div class="hint-text">Choose which blog to publish to</div>
+                <div class="hint-text">${vscode.l10n.t('Choose which blog to publish to')}</div>
             </div>
 
             <div class="form-group">
-                <label for="postTitle">Title *</label>
-                <input type="text" id="postTitle" placeholder="Enter post title..." required />
+                <label for="postTitle">${vscode.l10n.t('Title')} *</label>
+                <input type="text" id="postTitle" placeholder="${vscode.l10n.t('Enter post title...')}" required />
             </div>
 
             <div class="form-group">
-                <label for="contentFormat">Content format</label>
+                <label for="contentFormat">${vscode.l10n.t('Content format')}</label>
                 <select id="contentFormat">
                     <option value="html">HTML</option>
                     <option value="markdown">Markdown</option>
                 </select>
-                <div class="hint-text">Choose Markdown for Dev.to or HTML for other platforms</div>
+                <div class="hint-text">${vscode.l10n.t('Choose Markdown for Dev.to or HTML for other platforms')}</div>
             </div>
 
             <div class="form-group">
-                <label for="postStatus">Status</label>
+                <label for="postStatus">${vscode.l10n.t('Status')}</label>
                 <select id="postStatus">
-                    <option value="draft">Draft</option>
-                    <option value="publish">Published</option>
-                    <option value="pending">Pending Review</option>
-                    <option value="private">Private</option>
+                    <option value="draft">${vscode.l10n.t('Draft')}</option>
+                    <option value="publish">${vscode.l10n.t('Published')}</option>
+                    <option value="pending">${vscode.l10n.t('Pending Review')}</option>
+                    <option value="private">${vscode.l10n.t('Private')}</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="publishDate">Publish Date</label>
+                <label for="publishDate">${vscode.l10n.t('Publish Date')}</label>
                 <input type="datetime-local" id="publishDate" />
-                <div class="hint-text">Leave empty to publish immediately</div>
+                <div class="hint-text">${vscode.l10n.t('Leave empty to publish immediately')}</div>
             </div>
 
             <div class="form-group">
-                <label for="postExcerpt">Excerpt</label>
-                <textarea id="postExcerpt" placeholder="Optional post excerpt..."></textarea>
-                <div class="hint-text">Brief summary of your post</div>
+                <label for="postExcerpt">${vscode.l10n.t('Excerpt')}</label>
+                <textarea id="postExcerpt" placeholder="${vscode.l10n.t('Optional post excerpt...')}"></textarea>
+                <div class="hint-text">${vscode.l10n.t('Brief summary of your post')}</div>
             </div>
 
             <div class="form-group">
-                <label for="tagsInput">Tags</label>
-                <input type="text" id="tagsInput" class="tags-input" placeholder="Add tag and press Enter..." />
-                <div class="hint-text">Press Enter to add each tag</div>
+                <label for="tagsInput">${vscode.l10n.t('Tags')}</label>
+                <input type="text" id="tagsInput" class="tags-input" placeholder="${vscode.l10n.t('Add tag and press Enter...')}" />
+                <div class="hint-text">${vscode.l10n.t('Press Enter to add each tag')}</div>
                 <div class="tag-list" id="tagList"></div>
             </div>
 
             <div class="form-group">
-                <label for="categoriesInput">Categories</label>
-                <input type="text" id="categoriesInput" class="tags-input" placeholder="Add category and press Enter..." />
-                <div class="hint-text">Press Enter to add each category</div>
+                <label for="categoriesInput">${vscode.l10n.t('Categories')}</label>
+                <input type="text" id="categoriesInput" class="tags-input" placeholder="${vscode.l10n.t('Add category and press Enter...')}" />
+                <div class="hint-text">${vscode.l10n.t('Press Enter to add each category')}</div>
                 <div class="tag-list" id="categoryList"></div>
             </div>
         </div>
@@ -952,7 +953,7 @@ export class BlogEditorPanel {
         <!-- Right Editor Area -->
         <div class="editor-container">
             <div class="editor-header">
-                <h1>Blog Post Editor</h1>
+                <h1>${vscode.l10n.t('Blog Post Editor')}</h1>
             </div>
             <div class="editor-content" id="editorContentArea">
                 <div id="htmlEditorContainer">
@@ -963,9 +964,9 @@ export class BlogEditorPanel {
                 </div>
             </div>
             <div class="button-container">
-                <button id="loadPublishedBtn" class="secondary"><i class="fas fa-download"></i> Load Published Post</button>
-                <button id="saveBtn" class="secondary">Save Draft</button>
-                <button id="publishBtn">Publish Post</button>
+                <button id="loadPublishedBtn" class="secondary"><i class="fas fa-download"></i> ${vscode.l10n.t('Load Published Post')}</button>
+                <button id="saveBtn" class="secondary">${vscode.l10n.t('Save Draft')}</button>
+                <button id="publishBtn">${vscode.l10n.t('Publish Post')}</button>
             </div>
         </div>
     </div>
@@ -974,27 +975,35 @@ export class BlogEditorPanel {
     <div id="postSelectorModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Load Published Post</h3>
+                <h3>${vscode.l10n.t('Load Published Post')}</h3>
                 <button class="modal-close" id="modalCloseBtn">×</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="modalBlogSelect">Select Blog</label>
+                    <label for="modalBlogSelect">${vscode.l10n.t('Select Blog')}</label>
                     <select id="modalBlogSelect">
-                        <option value="">-- Select a blog --</option>
+                        <option value="">-- ${vscode.l10n.t('Select a blog')} --</option>
                     </select>
                 </div>
                 <div id="postListContainer">
-                    <div class="no-posts">Select a blog to load its published posts</div>
+                    <div class="no-posts">${vscode.l10n.t('Select a blog to load its published posts')}</div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="secondary" id="modalCancelBtn">Cancel</button>
-                <button id="loadSelectedPostBtn" disabled>Load Post</button>
+                <button class="secondary" id="modalCancelBtn">${vscode.l10n.t('Cancel')}</button>
+                <button id="loadSelectedPostBtn" disabled>${vscode.l10n.t('Load Post')}</button>
             </div>
         </div>
     </div>
 
+    <script nonce="${nonce}">
+        const __l10n = ${JSON.stringify({
+            selectABlog: vscode.l10n.t('Select a blog'),
+            selectBlogToLoadPosts: vscode.l10n.t('Select a blog to load its published posts'),
+            loadingPosts: vscode.l10n.t('Loading posts...'),
+            noPublishedPostsFound: vscode.l10n.t('No published posts found')
+        }).replace(/</g, '\\u003c')};
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin" nonce="${nonce}"></script>
     <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js" nonce="${nonce}"></script>
     <script nonce="${nonce}">
@@ -1195,7 +1204,7 @@ export class BlogEditorPanel {
         // Populate blog selection dropdown
         function populateBlogSelection() {
             const blogSelect = document.getElementById('selectedBlog');
-            blogSelect.innerHTML = '<option value="">-- Select a blog --</option>';
+            blogSelect.innerHTML = '<option value="">-- ' + __l10n.selectABlog + ' --</option>';
             
             if (window.blogConfigs && window.blogConfigs.length > 0) {
                 window.blogConfigs.forEach(blog => {
@@ -1309,7 +1318,7 @@ export class BlogEditorPanel {
             const modalBlogSelect = document.getElementById('modalBlogSelect');
             
             // Populate blog dropdown
-            modalBlogSelect.innerHTML = '<option value="">-- Select a blog --</option>';
+            modalBlogSelect.innerHTML = '<option value="">-- ' + __l10n.selectABlog + ' --</option>';
             if (window.blogConfigs && window.blogConfigs.length > 0) {
                 window.blogConfigs.forEach(blog => {
                     const option = document.createElement('option');
@@ -1323,7 +1332,7 @@ export class BlogEditorPanel {
             selectedPostId = null;
             selectedBlogForModal = null;
             loadedPosts = [];
-            document.getElementById('postListContainer').innerHTML = '<div class="no-posts">Select a blog to load its published posts</div>';
+            document.getElementById('postListContainer').innerHTML = '<div class="no-posts">' + __l10n.selectBlogToLoadPosts + '</div>';
             document.getElementById('loadSelectedPostBtn').disabled = true;
             
             modal.classList.add('active');
@@ -1346,12 +1355,12 @@ export class BlogEditorPanel {
             document.getElementById('loadSelectedPostBtn').disabled = true;
             
             if (!blogName) {
-                document.getElementById('postListContainer').innerHTML = '<div class="no-posts">Select a blog to load its published posts</div>';
+                document.getElementById('postListContainer').innerHTML = '<div class="no-posts">' + __l10n.selectBlogToLoadPosts + '</div>';
                 return;
             }
             
             // Show loading
-            document.getElementById('postListContainer').innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading posts...</div>';
+            document.getElementById('postListContainer').innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> ' + __l10n.loadingPosts + '</div>';
             
             // Request posts from extension
             vscode.postMessage({
@@ -1370,7 +1379,7 @@ export class BlogEditorPanel {
             }
             
             if (!message.posts || message.posts.length === 0) {
-                container.innerHTML = '<div class="no-posts">No published posts found</div>';
+                container.innerHTML = '<div class="no-posts">' + __l10n.noPublishedPostsFound + '</div>';
                 return;
             }
             
@@ -1515,13 +1524,4 @@ export class BlogEditorPanel {
 </body>
 </html>`;
     }
-}
-
-function getNonce() {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }

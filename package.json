@@ -3,7 +3,7 @@
   "displayName": "Live Blog Writer",
   "description": "Blog writer extension with WYSIWYG and Markdown editors for VS Code. Publish to WordPress, Blogger, Ghost, Substack, and Dev.to. Supports localization, post templates, and multiple blogs.",
   "icon": "images/writerIcon.png",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "publisher": "alvinashcraft",
   "repository": {
     "type": "git",
@@ -33,7 +33,11 @@
     "localization",
     "i18n",
     "templates",
-    "spanish"
+    "spanish",
+    "german",
+    "portuguese",
+    "italian",
+    "french"
   ],
   "engines": {
     "vscode": "^1.85.0"

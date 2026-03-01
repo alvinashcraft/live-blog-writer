@@ -302,7 +302,7 @@ export function activate(context: vscode.ExtensionContext) {
             const quickPickItems = recentDrafts.map(draft => ({
                 label: draft.title || vscode.l10n.t('Untitled Draft'),
                 description: vscode.l10n.t('{0} words', draft.wordCount),
-                detail: `Last modified: ${draft.updatedAt.toLocaleDateString()} ${draft.updatedAt.toLocaleTimeString()}`,
+                detail: vscode.l10n.t('Last modified: {0} {1}', draft.updatedAt.toLocaleDateString(), draft.updatedAt.toLocaleTimeString()),
                 draft: draft
             }));
 
@@ -346,7 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
                 ...allDrafts.map(draft => ({
                     label: draft.title || vscode.l10n.t('Untitled Draft'),
                     description: vscode.l10n.t('{0} words', draft.wordCount),
-                    detail: `Last modified: ${draft.updatedAt.toLocaleDateString()} ${draft.updatedAt.toLocaleTimeString()}`,
+                    detail: vscode.l10n.t('Last modified: {0} {1}', draft.updatedAt.toLocaleDateString(), draft.updatedAt.toLocaleTimeString()),
                     action: 'open',
                     draft: draft
                 }))

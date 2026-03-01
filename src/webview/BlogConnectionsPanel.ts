@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getNonce } from './utils';
 
 interface BlogConfig {
     name: string;
@@ -30,7 +31,7 @@ export class BlogConnectionsPanel {
         // Otherwise, create a new panel
         const panel = vscode.window.createWebviewPanel(
             BlogConnectionsPanel.viewType,
-            'Blog Connections',
+            vscode.l10n.t('Blog Connections'),
             column,
             {
                 enableScripts: true,
@@ -99,7 +100,7 @@ export class BlogConnectionsPanel {
 
         // Check if blog name already exists
         if (blogs.some(b => b.name === data.name)) {
-            this._panel.webview.postMessage({ command: 'error', message: 'A blog with this name already exists' });
+            this._panel.webview.postMessage({ command: 'error', message: vscode.l10n.t('A blog with this name already exists') });
             return;
         }
 
@@ -118,7 +119,7 @@ export class BlogConnectionsPanel {
             await this.storeCredential(data.name, data.platform, data.credential);
         }
 
-        this._panel.webview.postMessage({ command: 'success', message: 'Blog added successfully' });
+        this._panel.webview.postMessage({ command: 'success', message: vscode.l10n.t('Blog added successfully') });
         this.refresh();
     }
 
@@ -128,13 +129,13 @@ export class BlogConnectionsPanel {
 
         const index = blogs.findIndex(b => b.name === oldName);
         if (index === -1) {
-            this._panel.webview.postMessage({ command: 'error', message: 'Blog not found' });
+            this._panel.webview.postMessage({ command: 'error', message: vscode.l10n.t('Blog not found') });
             return;
         }
 
         // Check if new name conflicts with another blog
         if (data.name !== oldName && blogs.some(b => b.name === data.name)) {
-            this._panel.webview.postMessage({ command: 'error', message: 'A blog with this name already exists' });
+            this._panel.webview.postMessage({ command: 'error', message: vscode.l10n.t('A blog with this name already exists') });
             return;
         }
 
@@ -159,7 +160,7 @@ export class BlogConnectionsPanel {
             }
         }
 
-        this._panel.webview.postMessage({ command: 'success', message: 'Blog updated successfully' });
+        this._panel.webview.postMessage({ command: 'success', message: vscode.l10n.t('Blog updated successfully') });
         this.refresh();
     }
 
@@ -169,7 +170,7 @@ export class BlogConnectionsPanel {
 
         const index = blogs.findIndex(b => b.name === blogName);
         if (index === -1) {
-            this._panel.webview.postMessage({ command: 'error', message: 'Blog not found' });
+            this._panel.webview.postMessage({ command: 'error', message: vscode.l10n.t('Blog not found') });
             return;
         }
 
@@ -182,13 +183,13 @@ export class BlogConnectionsPanel {
             await config.update('defaultBlog', '', vscode.ConfigurationTarget.Global);
         }
 
-        this._panel.webview.postMessage({ command: 'success', message: 'Blog removed successfully' });
+        this._panel.webview.postMessage({ command: 'success', message: vscode.l10n.t('Blog removed successfully') });
         this.refresh();
     }
 
     private async handleSetCredential(blogName: string, platform: string, credentialType: string, credential: string) {
         await this.storeCredential(blogName, platform, credential);
-        this._panel.webview.postMessage({ command: 'success', message: 'Credential saved successfully' });
+        this._panel.webview.postMessage({ command: 'success', message: vscode.l10n.t('Credential saved successfully') });
         this.refresh();
     }
 
@@ -200,7 +201,7 @@ export class BlogConnectionsPanel {
         const newDefault = currentDefault === blogName ? '' : blogName;
         await config.update('defaultBlog', newDefault, vscode.ConfigurationTarget.Global);
 
-        const message = newDefault ? `Set as default blog: ${blogName}` : 'Default blog cleared';
+        const message = newDefault ? vscode.l10n.t('Set as default blog: {0}', blogName) : vscode.l10n.t('Default blog cleared');
         this._panel.webview.postMessage({ command: 'success', message });
         this.refresh();
     }
@@ -208,12 +209,12 @@ export class BlogConnectionsPanel {
     private async handleAuthenticateBlogger() {
         try {
             await vscode.commands.executeCommand('live-blog-writer.authenticateBlogger');
-            this._panel.webview.postMessage({ command: 'success', message: 'Blogger authentication completed' });
+            this._panel.webview.postMessage({ command: 'success', message: vscode.l10n.t('Blogger authentication completed') });
             this.refresh();
         } catch (error) {
             this._panel.webview.postMessage({ 
                 command: 'error', 
-                message: `Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+                message: vscode.l10n.t('Authentication failed: {0}', error instanceof Error ? error.message : 'Unknown error') 
             });
         }
     }
@@ -225,7 +226,7 @@ export class BlogConnectionsPanel {
         const blog = blogs.find(b => b.name === blogName);
 
         if (!blog) {
-            this._panel.webview.postMessage({ command: 'error', message: 'Blog not found' });
+            this._panel.webview.postMessage({ command: 'error', message: vscode.l10n.t('Blog not found') });
             return;
         }
 
@@ -237,38 +238,38 @@ export class BlogConnectionsPanel {
                 command: 'testResult', 
                 blogName, 
                 success: false, 
-                message: 'No credentials configured' 
+                message: vscode.l10n.t('No credentials configured') 
             });
             return;
         }
 
         // Basic validation based on platform
         let isValid = true;
-        let message = 'Configuration looks valid';
+        let message = vscode.l10n.t('Configuration looks valid');
 
         switch (platform) {
             case 'wordpress':
                 if (!blog.id || !blog.username) {
                     isValid = false;
-                    message = 'Missing URL or username';
+                    message = vscode.l10n.t('Missing URL or username');
                 }
                 break;
             case 'blogger':
                 if (!blog.id) {
                     isValid = false;
-                    message = 'Missing Blog ID';
+                    message = vscode.l10n.t('Missing Blog ID');
                 }
                 break;
             case 'ghost':
                 if (!blog.id) {
                     isValid = false;
-                    message = 'Missing site URL';
+                    message = vscode.l10n.t('Missing site URL');
                 }
                 break;
             case 'substack':
                 if (!blog.id) {
                     isValid = false;
-                    message = 'Missing hostname';
+                    message = vscode.l10n.t('Missing hostname');
                 }
                 break;
             case 'devto':
@@ -376,12 +377,15 @@ export class BlogConnectionsPanel {
     }
 
     private _getHtmlForWebview(blogs: any[]) {
+        const nonce = getNonce();
+
         return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${vscode.env.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog Connections</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
+    <title>${vscode.l10n.t('Blog Connections')}</title>
     <style>
         * {
             margin: 0;
@@ -660,14 +664,14 @@ export class BlogConnectionsPanel {
 </head>
 <body>
     <div class="header">
-        <h1>Blog Connections</h1>
-        <button class="btn" onclick="showAddModal()">+ Add Blog</button>
+        <h1>${vscode.l10n.t('Blog Connections')}</h1>
+        <button class="btn" data-action="show-add-modal">+ ${vscode.l10n.t('Add Blog')}</button>
     </div>
 
     ${blogs.length === 0 ? `
     <div class="empty-state">
-        <h2>No blogs configured yet</h2>
-        <p>Add your first blog to get started with publishing</p>
+        <h2>${vscode.l10n.t('No blogs configured yet')}</h2>
+        <p>${vscode.l10n.t('Add your first blog to get started with publishing')}</p>
     </div>
     ` : `
     <div class="blog-grid">
@@ -677,29 +681,29 @@ export class BlogConnectionsPanel {
                 <div>
                     <div class="blog-title">${this.escapeHtml(blog.name)}</div>
                     <span class="blog-platform">${blog.platform}</span>
-                    ${blog.isDefault ? '<span class="default-badge">Default</span>' : ''}
+                    ${blog.isDefault ? `<span class="default-badge">${vscode.l10n.t('Default')}</span>` : ''}
                 </div>
             </div>
             
-            ${blog.id ? `<div class="blog-info"><strong>ID/URL:</strong> ${this.escapeHtml(blog.id)}</div>` : ''}
-            ${blog.username ? `<div class="blog-info"><strong>Username:</strong> ${this.escapeHtml(blog.username)}</div>` : ''}
+            ${blog.id ? `<div class="blog-info"><strong>${vscode.l10n.t('ID/URL')}:</strong> ${this.escapeHtml(blog.id)}</div>` : ''}
+            ${blog.username ? `<div class="blog-info"><strong>${vscode.l10n.t('Username')}:</strong> ${this.escapeHtml(blog.username)}</div>` : ''}
             
             <div class="status-indicator">
                 <span class="status-dot ${blog.hasCredential ? 'connected' : 'disconnected'}"></span>
-                <span>${blog.hasCredential ? 'Credentials configured' : (blog.platform === 'blogger' ? 'Not authenticated' : 'No credentials')}</span>
+                <span>${blog.hasCredential ? vscode.l10n.t('Credentials configured') : (blog.platform === 'blogger' ? vscode.l10n.t('Not authenticated') : vscode.l10n.t('No credentials'))}</span>
             </div>
 
             <div class="blog-actions">
-                <button class="btn btn-small btn-secondary" data-action="edit" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}" data-blog-id="${this.escapeHtml(blog.id || '')}" data-blog-username="${this.escapeHtml(blog.username || '')}">Edit</button>
+                <button class="btn btn-small btn-secondary" data-action="edit" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}" data-blog-id="${this.escapeHtml(blog.id || '')}" data-blog-username="${this.escapeHtml(blog.username || '')}">${vscode.l10n.t('Edit')}</button>
                 ${blog.platform === 'blogger' ? 
                     (blog.hasCredential ? 
-                        '<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">Re-authenticate</button>' :
-                        '<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">Authenticate</button>') :
-                    '<button class="btn btn-small btn-secondary" data-action="set-credential" data-blog-name="' + this.escapeHtml(blog.name) + '" data-blog-platform="' + blog.platform + '">' + (blog.hasCredential ? 'Update Credential' : 'Set Credential') + '</button>'
+                        `<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">${vscode.l10n.t('Re-authenticate')}</button>` :
+                        `<button class="btn btn-small btn-secondary" data-action="authenticate-blogger">${vscode.l10n.t('Authenticate')}</button>`) :
+                    `<button class="btn btn-small btn-secondary" data-action="set-credential" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}">${blog.hasCredential ? vscode.l10n.t('Update Credential') : vscode.l10n.t('Set Credential')}</button>`
                 }
-                <button class="btn btn-small btn-secondary" data-action="set-default" data-blog-name="${this.escapeHtml(blog.name)}">${blog.isDefault ? 'Unset Default' : 'Set Default'}</button>
-                <button class="btn btn-small btn-secondary" data-action="test" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}">Test</button>
-                <button class="btn btn-small btn-secondary" data-action="delete" data-blog-name="${this.escapeHtml(blog.name)}">Delete</button>
+                <button class="btn btn-small btn-secondary" data-action="set-default" data-blog-name="${this.escapeHtml(blog.name)}">${blog.isDefault ? vscode.l10n.t('Unset Default') : vscode.l10n.t('Set Default')}</button>
+                <button class="btn btn-small btn-secondary" data-action="test" data-blog-name="${this.escapeHtml(blog.name)}" data-blog-platform="${blog.platform}">${vscode.l10n.t('Test')}</button>
+                <button class="btn btn-small btn-secondary" data-action="delete" data-blog-name="${this.escapeHtml(blog.name)}">${vscode.l10n.t('Delete')}</button>
             </div>
         </div>
         `).join('')}
@@ -710,8 +714,8 @@ export class BlogConnectionsPanel {
     <div id="blogModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Add Blog</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <h2 id="modalTitle">${vscode.l10n.t('Add Blog')}</h2>
+                <button class="close-btn" data-action="close-modal">&times;</button>
             </div>
             
             <form id="blogForm">
@@ -719,15 +723,15 @@ export class BlogConnectionsPanel {
                 <input type="hidden" id="originalName" value="">
                 
                 <div class="form-group">
-                    <label class="form-label" for="blogName">Blog Name *</label>
-                    <input type="text" id="blogName" class="form-input" placeholder="My Blog" required>
-                    <div class="form-help">A friendly name to identify this blog</div>
+                    <label class="form-label" for="blogName">${vscode.l10n.t('Blog Name')} *</label>
+                    <input type="text" id="blogName" class="form-input" placeholder="${vscode.l10n.t('My Blog')}" required>
+                    <div class="form-help">${vscode.l10n.t('A friendly name to identify this blog')}</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="platform">Platform *</label>
-                    <select id="platform" class="form-select" required onchange="updateFormFields()">
-                        <option value="">Select platform...</option>
+                    <label class="form-label" for="platform">${vscode.l10n.t('Platform')} *</label>
+                    <select id="platform" class="form-select" required>
+                        <option value="">${vscode.l10n.t('Select platform...')}</option>
                         <option value="wordpress">WordPress</option>
                         <option value="blogger">Blogger</option>
                         <option value="ghost">Ghost</option>
@@ -739,14 +743,14 @@ export class BlogConnectionsPanel {
                 <div id="platformFields"></div>
 
                 <div class="form-group" id="credentialGroup">
-                    <label class="form-label" for="credential"><span id="credentialLabel">Credential</span></label>
-                    <input type="password" id="credential" class="form-input" placeholder="Leave blank to set later">
-                    <div class="form-help" id="credentialHelp">Optional: You can set this later</div>
+                    <label class="form-label" for="credential"><span id="credentialLabel">${vscode.l10n.t('Credential')}</span></label>
+                    <input type="password" id="credential" class="form-input" placeholder="${vscode.l10n.t('Leave blank to set later')}">
+                    <div class="form-help" id="credentialHelp">${vscode.l10n.t('Optional: You can set this later')}</div>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn">Save</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-modal">${vscode.l10n.t('Cancel')}</button>
+                    <button type="submit" class="btn">${vscode.l10n.t('Save')}</button>
                 </div>
             </form>
         </div>
@@ -756,8 +760,8 @@ export class BlogConnectionsPanel {
     <div id="credentialModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Set Credential</h2>
-                <button class="close-btn" onclick="closeCredentialModal()">&times;</button>
+                <h2>${vscode.l10n.t('Set Credential')}</h2>
+                <button class="close-btn" data-action="close-credential-modal">&times;</button>
             </div>
             
             <form id="credentialForm">
@@ -765,20 +769,51 @@ export class BlogConnectionsPanel {
                 <input type="hidden" id="credPlatform" value="">
                 
                 <div class="form-group">
-                    <label class="form-label" for="credentialInput"><span id="credInputLabel">Credential</span></label>
+                    <label class="form-label" for="credentialInput"><span id="credInputLabel">${vscode.l10n.t('Credential')}</span></label>
                     <input type="password" id="credentialInput" class="form-input" required>
                     <div class="form-help" id="credInputHelp"></div>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeCredentialModal()">Cancel</button>
-                    <button type="submit" class="btn">Save</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-credential-modal">${vscode.l10n.t('Cancel')}</button>
+                    <button type="submit" class="btn">${vscode.l10n.t('Save')}</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
+    <script nonce="${nonce}">
+        const __l10n = ${JSON.stringify({
+            wordpressUrl: vscode.l10n.t('WordPress URL'),
+            username: vscode.l10n.t('Username'),
+            yourWordPressSiteUrl: vscode.l10n.t('Your WordPress site URL'),
+            yourWordPressUsername: vscode.l10n.t('Your WordPress username'),
+            blogId: vscode.l10n.t('Blog ID'),
+            yourBloggerBlogId: vscode.l10n.t('Your Blogger Blog ID'),
+            siteUrl: vscode.l10n.t('Site URL'),
+            yourGhostSiteUrl: vscode.l10n.t('Your Ghost site URL'),
+            hostname: vscode.l10n.t('Hostname'),
+            yourSubstackHostname: vscode.l10n.t('Your Substack hostname'),
+            yourSubstackUsernameOptional: vscode.l10n.t('Your Substack username (optional)'),
+            optionalUsedOnlyForDisplay: vscode.l10n.t('Optional: used only for display'),
+            applicationPassword: vscode.l10n.t('Application Password'),
+            wordpressApplicationPassword: vscode.l10n.t('WordPress application password'),
+            oauthHandledAutomatically: vscode.l10n.t('OAuth (handled automatically)'),
+            oauthAuthManagedAutomatically: vscode.l10n.t('OAuth authentication is managed automatically'),
+            adminApiKey: vscode.l10n.t('Admin API Key'),
+            ghostAdminApiKeyHelp: vscode.l10n.t('Format: id:secret from Ghost Admin → Integrations'),
+            apiKeyOrCookie: vscode.l10n.t('API Key or Cookie'),
+            substackApiCredentials: vscode.l10n.t('Substack API credentials'),
+            apiKey: vscode.l10n.t('API Key'),
+            devtoApiKeyHelp: vscode.l10n.t('Dev.to API key from Settings → Account → DEV API Keys'),
+            addBlog: vscode.l10n.t('Add Blog'),
+            editBlog: vscode.l10n.t('Edit Blog'),
+            startingBloggerAuth: vscode.l10n.t('Starting Blogger authentication...'),
+            testingConnection: vscode.l10n.t('Testing connection...'),
+            confirmDelete: vscode.l10n.t('Are you sure you want to delete "{0}"?')
+        }).replace(/</g, '\\u003c')};
+    </script>
+    <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
 
         // Helper function to escape HTML/special characters in user input
@@ -796,30 +831,30 @@ export class BlogConnectionsPanel {
 
         const platformFields = {
             wordpress: [
-                { name: 'id', label: 'WordPress URL', placeholder: 'https://myblog.com', required: true, help: 'Your WordPress site URL' },
-                { name: 'username', label: 'Username', placeholder: 'username', required: true, help: 'Your WordPress username' }
+                { name: 'id', label: __l10n.wordpressUrl, placeholder: 'https://myblog.com', required: true, help: __l10n.yourWordPressSiteUrl },
+                { name: 'username', label: __l10n.username, placeholder: 'username', required: true, help: __l10n.yourWordPressUsername }
             ],
             blogger: [
-                { name: 'id', label: 'Blog ID', placeholder: '1234567890', required: true, help: 'Your Blogger Blog ID' }
+                { name: 'id', label: __l10n.blogId, placeholder: '1234567890', required: true, help: __l10n.yourBloggerBlogId }
             ],
             ghost: [
-                { name: 'id', label: 'Site URL', placeholder: 'https://myblog.com', required: true, help: 'Your Ghost site URL' }
+                { name: 'id', label: __l10n.siteUrl, placeholder: 'https://myblog.com', required: true, help: __l10n.yourGhostSiteUrl }
             ],
             substack: [
-                { name: 'id', label: 'Hostname', placeholder: 'myblog.substack.com', required: true, help: 'Your Substack hostname' },
-                { name: 'username', label: 'Username', placeholder: 'username', required: false, help: 'Your Substack username (optional)' }
+                { name: 'id', label: __l10n.hostname, placeholder: 'myblog.substack.com', required: true, help: __l10n.yourSubstackHostname },
+                { name: 'username', label: __l10n.username, placeholder: 'username', required: false, help: __l10n.yourSubstackUsernameOptional }
             ],
             devto: [
-                { name: 'username', label: 'Username', placeholder: 'your-devto-username', required: false, help: 'Optional: used only for display' }
+                { name: 'username', label: __l10n.username, placeholder: 'your-devto-username', required: false, help: __l10n.optionalUsedOnlyForDisplay }
             ]
         };
 
         const credentialLabels = {
-            wordpress: { label: 'Application Password', help: 'WordPress application password' },
-            blogger: { label: 'OAuth (handled automatically)', help: 'OAuth authentication is managed automatically' },
-            ghost: { label: 'Admin API Key', help: 'Format: id:secret from Ghost Admin → Integrations' },
-            substack: { label: 'API Key or Cookie', help: 'Substack API credentials' },
-            devto: { label: 'API Key', help: 'Dev.to API key from Settings → Account → DEV API Keys' }
+            wordpress: { label: __l10n.applicationPassword, help: __l10n.wordpressApplicationPassword },
+            blogger: { label: __l10n.oauthHandledAutomatically, help: __l10n.oauthAuthManagedAutomatically },
+            ghost: { label: __l10n.adminApiKey, help: __l10n.ghostAdminApiKeyHelp },
+            substack: { label: __l10n.apiKeyOrCookie, help: __l10n.substackApiCredentials },
+            devto: { label: __l10n.apiKey, help: __l10n.devtoApiKeyHelp }
         };
 
         function updateFormFields() {
@@ -852,7 +887,7 @@ export class BlogConnectionsPanel {
         }
 
         function showAddModal() {
-            document.getElementById('modalTitle').textContent = 'Add Blog';
+            document.getElementById('modalTitle').textContent = __l10n.addBlog;
             document.getElementById('editMode').value = 'false';
             document.getElementById('blogForm').reset();
             document.getElementById('platformFields').innerHTML = '';
@@ -860,7 +895,9 @@ export class BlogConnectionsPanel {
             document.getElementById('blogModal').classList.add('active');
         }
 
-        // Event delegation for blog action buttons
+        document.getElementById('platform').addEventListener('change', updateFormFields);
+
+        // Event delegation for action buttons
         document.addEventListener('click', (e) => {
             const target = e.target;
             if (!target.matches('[data-action]')) return;
@@ -870,6 +907,15 @@ export class BlogConnectionsPanel {
             const platform = target.getAttribute('data-blog-platform');
             
             switch (action) {
+                case 'show-add-modal':
+                    showAddModal();
+                    break;
+                case 'close-modal':
+                    closeModal();
+                    break;
+                case 'close-credential-modal':
+                    closeCredentialModal();
+                    break;
                 case 'edit':
                     editBlog({
                         name: blogName,
@@ -897,7 +943,7 @@ export class BlogConnectionsPanel {
         });
 
         function editBlog(blog) {
-            document.getElementById('modalTitle').textContent = 'Edit Blog';
+            document.getElementById('modalTitle').textContent = __l10n.editBlog;
             document.getElementById('editMode').value = 'true';
             document.getElementById('originalName').value = blog.name;
             document.getElementById('blogName').value = blog.name;
@@ -939,18 +985,16 @@ export class BlogConnectionsPanel {
 
         function authenticateBlogger() {
             vscode.postMessage({ command: 'authenticateBlogger' });
-            showNotification('Starting Blogger authentication...', 'success');
+            showNotification(__l10n.startingBloggerAuth, 'success');
         }
 
         function testConnection(blogName, platform) {
             vscode.postMessage({ command: 'testConnection', blogName, platform });
-            showNotification('Testing connection...', 'success');
+            showNotification(__l10n.testingConnection, 'success');
         }
 
         function deleteBlog(blogName) {
-            // Escape blogName to prevent issues with special characters in confirm dialog
-            const escapedName = escapeHtml(blogName);
-            if (confirm(\`Are you sure you want to delete "\${escapedName}"?\`)) {
+            if (confirm(__l10n.confirmDelete.replace('{0}', blogName))) {
                 vscode.postMessage({ command: 'deleteBlog', blogName });
             }
         }

@@ -176,6 +176,33 @@ Examples:
 - Export to various formats
 - Post templates
 
+## Contributing Translations
+
+The extension supports localization via VS Code's native l10n API. Each language requires two files:
+
+1. **`package.nls.{locale}.json`** — Translations for package manifest strings (command titles, setting descriptions). Use `package.nls.json` as the English source.
+1. **`l10n/bundle.l10n.{locale}.json`** — Translations for runtime strings (error messages, prompts, UI labels). The JSON keys are the English source strings; values are the translations.
+
+### Adding a New Language
+
+1. Copy `package.nls.json` → `package.nls.{locale}.json` and translate the values
+1. Copy `l10n/bundle.l10n.es.json` → `l10n/bundle.l10n.{locale}.json` and translate the values
+1. Keep all JSON keys exactly as they are (English source strings)
+1. Keep `{0}`, `{1}`, `{2}` placeholders in the same positions
+1. Keep proper nouns (WordPress, Blogger, Ghost, Substack, Dev.to) untranslated
+1. Keep technical terms (API, URL, HTML, Markdown, OAuth) untranslated
+1. Keep `command.category` and `configuration.title` as "Live Blog Writer" (product name)
+1. Test by setting VS Code's display language to your locale
+
+### Currently Supported Languages
+
+- English (default)
+- Spanish (es)
+- German (de)
+- Portuguese (pt)
+- Italian (it)
+- French (fr)
+
 ## Reporting Bugs
 
 When reporting bugs, please include:
