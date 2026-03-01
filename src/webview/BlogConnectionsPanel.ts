@@ -979,9 +979,7 @@ export class BlogConnectionsPanel {
         }
 
         function deleteBlog(blogName) {
-            // Escape blogName to prevent issues with special characters in confirm dialog
-            const escapedName = escapeHtml(blogName);
-            if (confirm(__l10n.confirmDelete.replace('{0}', escapedName))) {
+            if (confirm(__l10n.confirmDelete.replace('{0}', blogName))) {
                 vscode.postMessage({ command: 'deleteBlog', blogName });
             }
         }

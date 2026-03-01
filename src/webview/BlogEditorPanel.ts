@@ -395,7 +395,7 @@ export class BlogEditorPanel {
             this._currentDraftId = undefined; // New edit, no draft ID yet
             this._panel.title = vscode.l10n.t('Blog Editor') + ' - ' + (draftData.title || vscode.l10n.t('Untitled'));
 
-            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || 'Untitled'));
+            vscode.window.showInformationMessage(vscode.l10n.t('Loaded: {0}', draftData.title || vscode.l10n.t('Untitled')));
         } catch (error) {
             vscode.window.showErrorMessage(vscode.l10n.t('Failed to load post: {0}', error instanceof Error ? error.message : 'Unknown error'));
         }
@@ -561,7 +561,7 @@ export class BlogEditorPanel {
             if (!this._currentDraftId) {
                 this._currentDraftId = draftId;
                 // Update panel title
-                this._panel.title = `Blog Editor - ${this._postData.title || 'Untitled Draft'}`;
+                this._panel.title = vscode.l10n.t('Blog Editor') + ' - ' + (this._postData.title || vscode.l10n.t('Untitled Draft'));
             }
             
             return draftId;
