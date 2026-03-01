@@ -5,6 +5,7 @@ import { BloggerService } from '../services/BloggerService';
 import { GhostService } from '../services/GhostService';
 import { SubstackService } from '../services/SubstackService';
 import { DevToService } from '../services/DevToService';
+import { getNonce } from './utils';
 
 // Helper function to get the secret key for a blog
 function getSecretKey(platform: string, blogName: string, credentialType: string): string {
@@ -594,7 +595,7 @@ export class BlogEditorPanel {
         const blogConfigsScript = `window.blogConfigs = ${JSON.stringify(blogs).replace(/</g, '\\u003c')}; window.defaultBlog = ${JSON.stringify(defaultBlog).replace(/</g, '\\u003c')};`;
 
         return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${vscode.env.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1523,13 +1524,4 @@ export class BlogEditorPanel {
 </body>
 </html>`;
     }
-}
-
-function getNonce() {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }

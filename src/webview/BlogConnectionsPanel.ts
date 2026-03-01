@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getNonce } from './utils';
 
 interface BlogConfig {
     name: string;
@@ -384,7 +385,7 @@ export class BlogConnectionsPanel {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
-    <title>Blog Connections</title>
+    <title>${vscode.l10n.t('Blog Connections')}</title>
     <style>
         * {
             margin: 0;
@@ -1080,13 +1081,4 @@ export class BlogConnectionsPanel {
         };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
-}
-
-function getNonce() {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }
