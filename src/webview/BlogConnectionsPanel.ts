@@ -664,7 +664,7 @@ export class BlogConnectionsPanel {
 <body>
     <div class="header">
         <h1>${vscode.l10n.t('Blog Connections')}</h1>
-        <button class="btn" onclick="showAddModal()">+ ${vscode.l10n.t('Add Blog')}</button>
+        <button class="btn" data-action="show-add-modal">+ ${vscode.l10n.t('Add Blog')}</button>
     </div>
 
     ${blogs.length === 0 ? `
@@ -714,7 +714,7 @@ export class BlogConnectionsPanel {
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">${vscode.l10n.t('Add Blog')}</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <button class="close-btn" data-action="close-modal">&times;</button>
             </div>
             
             <form id="blogForm">
@@ -729,7 +729,7 @@ export class BlogConnectionsPanel {
 
                 <div class="form-group">
                     <label class="form-label" for="platform">${vscode.l10n.t('Platform')} *</label>
-                    <select id="platform" class="form-select" required onchange="updateFormFields()">
+                    <select id="platform" class="form-select" required>
                         <option value="">${vscode.l10n.t('Select platform...')}</option>
                         <option value="wordpress">WordPress</option>
                         <option value="blogger">Blogger</option>
@@ -748,7 +748,7 @@ export class BlogConnectionsPanel {
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">${vscode.l10n.t('Cancel')}</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-modal">${vscode.l10n.t('Cancel')}</button>
                     <button type="submit" class="btn">${vscode.l10n.t('Save')}</button>
                 </div>
             </form>
@@ -760,7 +760,7 @@ export class BlogConnectionsPanel {
         <div class="modal-content">
             <div class="modal-header">
                 <h2>${vscode.l10n.t('Set Credential')}</h2>
-                <button class="close-btn" onclick="closeCredentialModal()">&times;</button>
+                <button class="close-btn" data-action="close-credential-modal">&times;</button>
             </div>
             
             <form id="credentialForm">
@@ -774,7 +774,7 @@ export class BlogConnectionsPanel {
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeCredentialModal()">${vscode.l10n.t('Cancel')}</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-credential-modal">${vscode.l10n.t('Cancel')}</button>
                     <button type="submit" class="btn">${vscode.l10n.t('Save')}</button>
                 </div>
             </form>
@@ -894,7 +894,9 @@ export class BlogConnectionsPanel {
             document.getElementById('blogModal').classList.add('active');
         }
 
-        // Event delegation for blog action buttons
+        document.getElementById('platform').addEventListener('change', updateFormFields);
+
+        // Event delegation for action buttons
         document.addEventListener('click', (e) => {
             const target = e.target;
             if (!target.matches('[data-action]')) return;
@@ -904,6 +906,15 @@ export class BlogConnectionsPanel {
             const platform = target.getAttribute('data-blog-platform');
             
             switch (action) {
+                case 'show-add-modal':
+                    showAddModal();
+                    break;
+                case 'close-modal':
+                    closeModal();
+                    break;
+                case 'close-credential-modal':
+                    closeCredentialModal();
+                    break;
                 case 'edit':
                     editBlog({
                         name: blogName,
